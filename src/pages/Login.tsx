@@ -26,12 +26,14 @@ export function Login() {
 
         try {
             const response = await api.post('/auth/login', { email, password })
-            const { access_token, user } = response.data
-
-            setAuth(user, access_token)
-            navigate('/dashboard')
+            if (response.data.success) {
+                const { session, user } = response.data.data
+                localStorage.setItem('proofit_token', session.access_token)
+                setAuth(user, session.access_token)
+                navigate('/dashboard')
+            }
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Login failed. Please check your credentials.')
+            setError(err.response?.data?.error || 'Login failed. Please check your credentials.')
         } finally {
             setLoading(false)
         }

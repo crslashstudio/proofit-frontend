@@ -30,11 +30,20 @@ export function Register() {
         setLoading(true)
         setError(null)
 
+        const { name, email, password, workspaceName } = formData
+
         try {
-            await api.post('/auth/register', formData)
-            navigate('/login')
+            const response = await api.post('/auth/register', {
+                name,
+                email,
+                password,
+                workspaceName
+            })
+            if (response.data.success) {
+                navigate('/login')
+            }
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Registration failed. Please try again.')
+            setError(err.response?.data?.error || 'Registration failed. Please try again.')
         } finally {
             setLoading(false)
         }

@@ -11,7 +11,6 @@ import {
     ShieldCheck,
     Lock,
     Check,
-    X,
     Clock
 } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'

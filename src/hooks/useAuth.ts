@@ -8,14 +8,24 @@ export function useAuth() {
     const location = useLocation()
 
     useEffect(() => {
+        const storedToken = localStorage.getItem('proofit_token')
         const publicPaths = ['/login', '/register']
         const isPublicPath = publicPaths.includes(location.pathname)
 
-        if (!isAuthenticated && !isPublicPath) {
+        // Read token from localStorage on mount and sync store
+        if (storedToken && !isAuthenticated) {
+            // We only have the token, we might not have the user object here
+            // but setting isAuthenticated to true prevents the redirect loop
+            useAppStore.setState({ isAuthenticated: true, token: storedToken })
+        }
+
+        const currentAuth = storedToken || isAuthenticated
+
+        if (!currentAuth && !isPublicPath) {
             navigate('/login', { replace: true })
         }
 
-        if (isAuthenticated && isPublicPath) {
+        if (currentAuth && isPublicPath) {
             navigate('/dashboard', { replace: true })
         }
     }, [isAuthenticated, location.pathname, navigate])

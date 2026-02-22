@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
     Globe,
     Building2,
@@ -72,8 +73,9 @@ const INITIAL_CHANNELS: Channel[] = [
 
 export function Settings() {
     const { t, user } = useAppStore()
+    const navigate = useNavigate()
     const [activeTab, setActiveTab] = useState<Tab>('integrations')
-    const [connecting, setConnecting] = useState<string | null>(null)
+    const [connecting, setConnecting] = useState(false)
 
     // Mock connected data for TikTok if it was just connected (simulation)
     const [channels] = useState<Channel[]>(INITIAL_CHANNELS)
@@ -81,18 +83,28 @@ export function Settings() {
 
     const handleConnectTikTok = async () => {
         try {
-            setConnecting('tiktok')
-            const response = await api.get('/integrations/tiktok/connect')
-            if (response.data?.data?.authUrl) {
-                window.location.href = response.data.data.authUrl
+            setConnecting(true)
+            const token = localStorage.getItem('proofit_token')
+            if (!token) {
+                navigate('/login')
+                return
             }
-        } catch (error) {
-            console.error('Failed to connect TikTok:', error)
-            // For demo purposes, we might want to simulate success if the API fails but we want to show the UI
-            // But per instructions, we follow the API call logic.
+            const response = await api.get('/integrations/tiktok/connect')
+            if (response.data.success) {
+                window.location.href = response.data.data.authUrl
+            } else {
+                console.error('Connection failed:', response.data.message)
+                alert(t('connectionError'))
+            }
+        } catch (error: any) {
+            console.error('Connect error:', error)
+            // If status is 401, the api.ts interceptor already handles logout/redirect
+            // If it's something else, we show the generic connection error
+            if (error.response?.status !== 401) {
+                alert(t('connectionError'))
+            }
         } finally {
-            // Delay to show loading state
-            setTimeout(() => setConnecting(null), 1000)
+            setConnecting(false)
         }
     }
 
@@ -173,11 +185,11 @@ export function Settings() {
                                 </button>
                             ) : (
                                 <button
-                                    disabled={connecting === ch.id}
+                                    disabled={connecting && ch.id === 'tiktok'}
                                     onClick={() => ch.id === 'tiktok' && handleConnectTikTok()}
                                     className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-500/20 active:scale-95 transition-all uppercase tracking-wider"
                                 >
-                                    {connecting === ch.id ? (
+                                    {connecting && ch.id === 'tiktok' ? (
                                         <>
                                             <Loader2 className="h-3.5 w-3.5 animate-spin" />
                                             Connecting...

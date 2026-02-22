@@ -52,6 +52,8 @@ export const translations = {
         confirmPassword: 'Konfirmasi Kata Sandi',
         channelIntegrations: 'Integrasi Channel',
         connectMarketplace: 'Hubungkan akun marketplace Anda ke PROOFIT',
+        connectionError: 'Gagal terhubung ke channel',
+        sessionExpired: 'Sesi anda telah berakhir. Silakan login kembali.',
     },
     en: {
         dashboard: 'Commerce Overview',
@@ -106,6 +108,8 @@ export const translations = {
         confirmPassword: 'Confirm Password',
         channelIntegrations: 'Channel Integrations',
         connectMarketplace: 'Connect your marketplace accounts to PROOFIT',
+        connectionError: 'Failed to connect to channel',
+        sessionExpired: 'Your session has expired. Please login again.',
     }
 } as const
 

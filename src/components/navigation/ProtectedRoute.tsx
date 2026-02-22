@@ -1,10 +1,9 @@
 import { Navigate, Outlet } from 'react-router-dom'
-import { useAppStore } from '@/store/useAppStore'
 
 export function ProtectedRoute() {
-    const { isAuthenticated } = useAppStore()
+    const token = localStorage.getItem('proofit_token')
 
-    if (!isAuthenticated) {
+    if (!token) {
         return <Navigate to="/login" replace />
     }
 

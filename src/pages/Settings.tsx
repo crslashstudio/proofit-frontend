@@ -84,7 +84,7 @@ export function Settings() {
     const [tiktokShopName, setTiktokShopName] = useState('')
     const [syncing, setSyncing] = useState(false)
     const [syncSuccess, setSyncSuccess] = useState(false)
-    const [lastSynced, setLastSynced] = useState<string | null>(null)
+    const [disconnecting, setDisconnecting] = useState(false)
     const [workspaceName, setWorkspaceName] = useState('My Workspace')
 
     useEffect(() => {
@@ -96,9 +96,6 @@ export function Settings() {
                 if (tiktok) {
                     setTiktokConnected(true)
                     setTiktokShopName(tiktok.shop_name)
-                    if (tiktok.last_synced_at) {
-                        setLastSynced(new Date(tiktok.last_synced_at).toLocaleString())
-                    }
                 }
             } catch (error) {
                 console.error('Failed to fetch integrations:', error)
@@ -115,7 +112,6 @@ export function Settings() {
                 const { orders, products } = response.data.data
                 alert(`Berhasil sync ${orders} orders and ${products} produk`)
                 setSyncSuccess(true)
-                setLastSynced(new Date().toLocaleString())
                 setTimeout(() => setSyncSuccess(false), 3000)
             }
         } catch (error: any) {
@@ -143,8 +139,6 @@ export function Settings() {
             }
         } catch (error: any) {
             console.error('Connect error:', error)
-            // If status is 401, the api.ts interceptor already handles logout/redirect
-            // If it's something else, we show the generic connection error
             if (error.response?.status !== 401) {
                 alert(t('connectionError'))
             }
@@ -153,11 +147,26 @@ export function Settings() {
         }
     }
 
+    const handleDisconnect = async () => {
+        if (!confirm('Yakin ingin memutus koneksi TikTok Shop?')) return
+        try {
+            setDisconnecting(true)
+            await api.delete('/integrations/tiktok')
+            setTiktokConnected(false)
+            setTiktokShopName('')
+            alert('TikTok Shop berhasil diputus')
+        } catch (error: any) {
+            alert('Gagal memutus: ' + (error.response?.data?.error || error.message))
+        } finally {
+            setDisconnecting(false)
+        }
+    }
+
     const renderIntegrations = () => (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
             <div className="flex flex-col gap-1">
-                <h2 className="text-xl font-bold text-foreground">{t('channelIntegrations')}</h2>
-                <p className="text-sm text-gray-400 font-medium">{t('connectMarketplace')}</p>
+                <h2 className="text-xl font-bold text-[var(--text-primary)]">{t('channelIntegrations')}</h2>
+                <p className="text-sm text-[var(--text-muted)] font-medium">{t('connectMarketplace')}</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -166,21 +175,21 @@ export function Settings() {
                     return (
                         <div
                             key={ch.id}
-                            className="glass-card p-5 border-none dark:border dark:border-border overflow-hidden relative group transition-all hover:shadow-lg hover:shadow-blue-500/5"
+                            className="glass-card p-5 border border-[var(--border)] bg-[var(--bg-secondary)] overflow-hidden relative group transition-all hover:shadow-lg hover:border-[var(--border-hover)]"
                         >
-                            <div className="flex items-start justify-between mb-4">
-                                <div className="flex items-center gap-4">
+                            <div className="flex items-start justify-between mb-3">
+                                <div className="flex items-center gap-3">
                                     <div
-                                        className="h-12 w-12 rounded-xl flex items-center justify-center text-white text-xl font-bold shadow-sm"
+                                        className="h-10 w-10 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-sm"
                                         style={{ backgroundColor: ch.color }}
                                     >
                                         {ch.letter}
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-foreground">{ch.name}</h3>
-                                        <div className="mt-1">
+                                        <h3 className="font-bold text-[var(--text-primary)]">{ch.name}</h3>
+                                        <div className="mt-0.5">
                                             {isConnected ? (
-                                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-bold uppercase tracking-wider">
+                                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold uppercase tracking-wider border border-emerald-500/20">
                                                     <CheckCircle2 className="h-3 w-3" />
                                                     {ch.id === 'tiktok' ? 'TERHUBUNG' : t('connected')}
                                                 </span>
@@ -190,7 +199,7 @@ export function Settings() {
                                                     {t('comingSoon')}
                                                 </span>
                                             ) : (
-                                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-gray-500/10 text-gray-500 text-[10px] font-bold uppercase tracking-wider">
+                                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[var(--bg-tertiary)] text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-wider border border-[var(--border)]">
                                                     {ch.id === 'tiktok' ? 'BELUM TERHUBUNG' : t('notConnected')}
                                                 </span>
                                             )}
@@ -199,75 +208,70 @@ export function Settings() {
                                 </div>
                             </div>
 
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 leading-relaxed">
+                            {isConnected && ch.id === 'tiktok' && (
+                                <p className="text-sm font-medium text-[var(--text-secondary)] mb-1 flex items-center gap-1.5">
+                                    <Building2 className="h-3.5 w-3.5 text-blue-500" />
+                                    {tiktokShopName || 'Official Store'}
+                                </p>
+                            )}
+
+                            <p className="text-xs text-[var(--text-muted)] mb-5 leading-relaxed">
                                 {ch.description}
                             </p>
 
-                            {isConnected && (
-                                <div className="mb-6 p-4 rounded-xl bg-muted/50 dark:bg-white/5 border border-border">
-                                    <div className="flex items-center justify-between text-sm font-medium">
-                                        <div className="flex flex-col gap-1">
-                                            <span className="text-gray-400 text-xs">Shop Name</span>
-                                            <span className="text-foreground">
-                                                {ch.id === 'tiktok' ? tiktokShopName : (ch.shopName || 'Official Store')}
-                                            </span>
-                                        </div>
-                                        <div className="flex flex-col gap-1 text-right">
-                                            <span className="text-gray-400 text-xs">Shop ID</span>
-                                            <span className="text-foreground font-mono">{ch.shopId || '74321098'}</span>
-                                        </div>
-                                    </div>
-                                    {ch.id === 'tiktok' && lastSynced && (
-                                        <div className="mt-3 pt-3 border-t border-border flex items-center gap-2 text-[10px] text-gray-400 font-medium">
-                                            <Clock className="h-3 w-3" />
-                                            Last synced: {lastSynced}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
                                 {isConnected ? (
                                     <>
-                                        <button
-                                            className="px-4 py-2 border border-red-500/50 rounded-xl text-xs font-bold text-red-500 hover:bg-red-500/10 transition-all uppercase tracking-wider"
-                                        >
-                                            Putuskan
-                                        </button>
-
                                         {ch.id === 'tiktok' && (
+                                            <>
+                                                <button
+                                                    onClick={handleSync}
+                                                    disabled={syncing}
+                                                    className={cn(
+                                                        "flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all uppercase tracking-wider",
+                                                        syncSuccess
+                                                            ? "bg-emerald-500 text-white"
+                                                            : "bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 active:scale-95"
+                                                    )}
+                                                >
+                                                    {syncing ? (
+                                                        <>
+                                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                                            Syncing...
+                                                        </>
+                                                    ) : syncSuccess ? (
+                                                        <>
+                                                            <Check className="h-4 w-4" />
+                                                            Synced
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Clock className="h-3.5 w-3.5" />
+                                                            Sync Sekarang
+                                                        </>
+                                                    )}
+                                                </button>
+                                                <button
+                                                    onClick={handleDisconnect}
+                                                    disabled={disconnecting}
+                                                    className="px-4 py-2 border border-red-500/30 rounded-xl text-xs font-bold text-red-500 hover:bg-red-500/10 transition-all uppercase tracking-wider"
+                                                >
+                                                    {disconnecting ? '...' : 'Putus'}
+                                                </button>
+                                            </>
+                                        )}
+                                        {ch.id !== 'tiktok' && (
                                             <button
-                                                onClick={handleSync}
-                                                disabled={syncing}
-                                                className={cn(
-                                                    "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all",
-                                                    syncSuccess
-                                                        ? "bg-emerald-500 text-white"
-                                                        : "bg-blue-500 hover:bg-blue-600 text-white shadow-lg shadow-blue-500/20 active:scale-95"
-                                                )}
+                                                className="w-full px-4 py-2 border border-red-500/50 rounded-xl text-xs font-bold text-red-500 hover:bg-red-500/10 transition-all uppercase tracking-wider"
                                             >
-                                                {syncing ? (
-                                                    <>
-                                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                                        Syncing...
-                                                    </>
-                                                ) : syncSuccess ? (
-                                                    <>
-                                                        <Check className="h-4 w-4" />
-                                                        Synced
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        Sync Sekarang
-                                                    </>
-                                                )}
+                                                Putuskan
                                             </button>
                                         )}
                                     </>
                                 ) : ch.status === 'coming_soon' ? (
                                     <button
                                         disabled
-                                        className="px-4 py-2 rounded-xl text-xs font-bold text-gray-400 bg-gray-100 dark:bg-white/5 cursor-not-allowed uppercase tracking-wider"
+                                        className="w-full px-4 py-2 rounded-xl text-xs font-bold text-gray-400 bg-[var(--bg-tertiary)] cursor-not-allowed uppercase tracking-wider border border-[var(--border)]"
                                     >
                                         {t('comingSoon')}
                                     </button>
@@ -275,7 +279,7 @@ export function Settings() {
                                     <button
                                         disabled={connecting && ch.id === 'tiktok'}
                                         onClick={() => ch.id === 'tiktok' && handleConnectTikTok()}
-                                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-500/20 active:scale-95 transition-all uppercase tracking-wider"
+                                        className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-500/20 active:scale-95 transition-all uppercase tracking-wider"
                                     >
                                         {connecting && ch.id === 'tiktok' ? (
                                             <>
@@ -301,20 +305,20 @@ export function Settings() {
     const renderWorkspace = () => (
         <div className="max-w-2xl space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
             <div className="flex flex-col gap-1">
-                <h2 className="text-xl font-bold text-foreground">{t('workspace')}</h2>
-                <p className="text-sm text-gray-400 font-medium">Manage your workspace settings and preferences</p>
+                <h2 className="text-xl font-bold text-[var(--text-primary)]">{t('workspace')}</h2>
+                <p className="text-sm text-[var(--text-muted)] font-medium">Manage your workspace settings and preferences</p>
             </div>
 
-            <div className="glass-card p-6 border-none dark:border dark:border-border space-y-6">
+            <div className="glass-card p-6 border border-[var(--border)] bg-[var(--bg-secondary)] space-y-6 shadow-sm">
                 <div className="space-y-2">
-                    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">{t('workspaceName')}</label>
+                    <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">{t('workspaceName')}</label>
                     <div className="relative group">
-                        <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                        <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)] group-focus-within:text-blue-500 transition-colors" />
                         <input
                             type="text"
                             value={workspaceName}
                             onChange={(e) => setWorkspaceName(e.target.value)}
-                            className="w-full bg-muted/50 dark:bg-white/5 border border-border focus:border-blue-500 rounded-xl py-2.5 pl-10 pr-4 text-sm font-medium transition-all outline-none"
+                            className="w-full bg-[var(--bg-secondary)] border border-[var(--border)] focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-xl py-2.5 pl-10 pr-4 text-sm font-medium transition-all outline-none text-[var(--text-primary)] shadow-sm"
                         />
                     </div>
                 </div>
@@ -331,44 +335,44 @@ export function Settings() {
     const renderProfile = () => (
         <div className="max-w-2xl space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
             <div className="flex flex-col gap-1">
-                <h2 className="text-xl font-bold text-foreground">{t('profile')}</h2>
-                <p className="text-sm text-gray-400 font-medium">Personalize your account and security</p>
+                <h2 className="text-xl font-bold text-[var(--text-primary)]">{t('profile')}</h2>
+                <p className="text-sm text-[var(--text-muted)] font-medium">Personalize your account and security</p>
             </div>
 
-            <div className="glass-card p-6 border-none dark:border dark:border-border space-y-8">
+            <div className="glass-card p-6 border border-[var(--border)] bg-[var(--bg-secondary)] space-y-8 shadow-sm">
                 <div className="flex items-center gap-4">
                     <div className="h-16 w-16 rounded-full bg-primary flex items-center justify-center text-xl font-bold text-white shadow-lg shadow-blue-500/20 ring-4 ring-white/10">
                         {user?.email?.substring(0, 2).toUpperCase() || 'P'}
                     </div>
                     <div>
-                        <h3 className="font-bold text-foreground">{user?.email || 'user@example.com'}</h3>
-                        <p className="text-xs text-gray-400 font-medium uppercase tracking-widest mt-1">Administrator</p>
+                        <h3 className="font-bold text-[var(--text-primary)]">{user?.email || 'user@example.com'}</h3>
+                        <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1">Administrator</p>
                     </div>
                 </div>
 
-                <div className="h-px bg-border" />
+                <div className="h-px bg-[var(--border)]" />
 
                 <div className="space-y-4">
                     <div className="flex items-center gap-2 mb-2">
                         <Lock className="h-4 w-4 text-blue-500" />
-                        <h4 className="text-sm font-bold text-foreground uppercase tracking-widest">{t('changePassword')}</h4>
+                        <h4 className="text-xs font-bold text-[var(--text-primary)] uppercase tracking-widest">{t('changePassword')}</h4>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{t('newPassword')}</label>
+                            <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">{t('newPassword')}</label>
                             <input
                                 type="password"
                                 placeholder="••••••••"
-                                className="w-full bg-muted/50 dark:bg-white/5 border border-border focus:border-blue-500 rounded-xl py-2.5 px-4 text-sm font-medium transition-all outline-none"
+                                className="w-full bg-[var(--bg-secondary)] border border-[var(--border)] focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-xl py-2.5 px-4 text-sm font-medium transition-all outline-none text-[var(--text-primary)]"
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{t('confirmPassword')}</label>
+                            <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">{t('confirmPassword')}</label>
                             <input
                                 type="password"
                                 placeholder="••••••••"
-                                className="w-full bg-muted/50 dark:bg-white/5 border border-border focus:border-blue-500 rounded-xl py-2.5 px-4 text-sm font-medium transition-all outline-none"
+                                className="w-full bg-[var(--bg-secondary)] border border-[var(--border)] focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-xl py-2.5 px-4 text-sm font-medium transition-all outline-none text-[var(--text-primary)]"
                             />
                         </div>
                     </div>
@@ -394,20 +398,20 @@ export function Settings() {
                         </div>
                         <p className="text-[10px] font-bold text-blue-500 uppercase tracking-widest">Workspace Settings</p>
                     </div>
-                    <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">{t('settings')}</h1>
+                    <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-[var(--text-primary)]">{t('settings')}</h1>
                 </div>
             </section>
 
             {/* Settings Navigation */}
             <section className="px-1">
-                <div className="flex gap-2 p-1.5 bg-muted/30 dark:bg-white/5 border border-border rounded-2xl w-fit">
+                <div className="flex gap-2 p-1.5 bg-[var(--bg-tertiary)] border border-[var(--border)] rounded-2xl w-fit shadow-sm">
                     <button
                         onClick={() => setActiveTab('integrations')}
                         className={cn(
                             "flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all uppercase tracking-wider",
                             activeTab === 'integrations'
-                                ? "bg-white dark:bg-sidebar text-blue-500 shadow-sm ring-1 ring-border"
-                                : "text-gray-400 hover:text-foreground hover:bg-white/5"
+                                ? "bg-[var(--bg-secondary)] text-blue-500 shadow-sm border border-[var(--border)]"
+                                : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]/50"
                         )}
                     >
                         <Globe className="h-3.5 w-3.5" />
@@ -418,8 +422,8 @@ export function Settings() {
                         className={cn(
                             "flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all uppercase tracking-wider",
                             activeTab === 'workspace'
-                                ? "bg-white dark:bg-sidebar text-blue-500 shadow-sm ring-1 ring-border"
-                                : "text-gray-400 hover:text-foreground hover:bg-white/5"
+                                ? "bg-[var(--bg-secondary)] text-blue-500 shadow-sm border border-[var(--border)]"
+                                : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]/50"
                         )}
                     >
                         <Building2 className="h-3.5 w-3.5" />
@@ -430,8 +434,8 @@ export function Settings() {
                         className={cn(
                             "flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all uppercase tracking-wider",
                             activeTab === 'profile'
-                                ? "bg-white dark:bg-sidebar text-blue-500 shadow-sm ring-1 ring-border"
-                                : "text-gray-400 hover:text-foreground hover:bg-white/5"
+                                ? "bg-[var(--bg-secondary)] text-blue-500 shadow-sm border border-[var(--border)]"
+                                : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]/50"
                         )}
                     >
                         <User className="h-3.5 w-3.5" />

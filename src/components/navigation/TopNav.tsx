@@ -79,7 +79,7 @@ export function TopNav() {
   const toStr = dateRange.to.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 
   return (
-    <header className="sticky top-0 z-50 flex h-[56px] w-full shrink-0 items-center border-b border-border bg-background/80 px-4 md:px-6 backdrop-blur-2xl transition-all duration-300 shadow-sm flex-nowrap overflow-hidden">
+    <header className="sticky top-0 z-[100] flex h-[52px] w-full shrink-0 items-center border-b border-[var(--border)] bg-[var(--bg-secondary)]/80 px-4 md:px-6 backdrop-blur-xl transition-all duration-300 shadow-sm flex-nowrap overflow-hidden">
       {/* Mobile Menu Toggle - Fixed width */}
       <button
         type="button"
@@ -103,13 +103,13 @@ export function TopNav() {
         <button
           type="button"
           onClick={() => setWorkspaceOpen((o) => !o)}
-          className="flex items-center gap-2 rounded-full border border-border bg-muted/30 dark:bg-white/5 px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-all"
+          className="flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--bg-tertiary)] px-3 py-1.5 text-xs font-medium text-[var(--text-primary)] hover:border-[var(--border-hover)] transition-all"
         >
           <span className="truncate max-w-[100px]">{currentWorkspace?.name ?? 'Select Workspace'}</span>
-          <ChevronDown className={cn('h-3 w-3 shrink-0 text-gray-500 transition-transform duration-300', workspaceOpen && 'rotate-180')} />
+          <ChevronDown className={cn('h-3 w-3 shrink-0 text-[var(--text-muted)] transition-transform duration-300', workspaceOpen && 'rotate-180')} />
         </button>
         {workspaceOpen && (
-          <div className="absolute left-0 top-full mt-2 w-56 rounded-xl border border-border bg-card py-1 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 duration-200">
+          <div className="absolute left-0 top-full mt-2 w-56 rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] py-1 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 duration-200 z-[110]">
             {workspaces.map((w) => (
               <button
                 key={w.id}
@@ -120,7 +120,7 @@ export function TopNav() {
                 }}
                 className={cn(
                   'w-full px-4 py-2 text-left text-sm transition-colors',
-                  w.id === selectedWorkspace ? 'bg-primary/10 text-primary font-semibold' : 'text-foreground hover:bg-muted'
+                  w.id === selectedWorkspace ? 'bg-primary/10 text-primary font-semibold' : 'text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)]'
                 )}
               >
                 {w.name}
@@ -206,17 +206,17 @@ export function TopNav() {
           <button
             type="button"
             onClick={() => setDateOpen((o) => !o)}
-            className="flex items-center gap-1.5 rounded-full border border-border bg-muted/30 px-3 py-1.5 text-[10px] md:text-xs font-medium text-foreground hover:bg-muted transition-all"
+            className="flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--bg-tertiary)] px-3 py-1.5 text-[10px] md:text-xs font-medium text-[var(--text-primary)] hover:border-[var(--border-hover)] transition-all"
           >
             <Calendar className="h-3.5 w-3.5" />
             <span className="hidden sm:inline-block truncate max-w-[140px] font-mono">{fromStr} – {toStr}</span>
             <ChevronDown className={cn('h-3 w-3 shrink-0 hidden sm:block transition-transform duration-300', dateOpen && 'rotate-180')} />
           </button>
           {dateOpen && (
-            <div className="absolute right-0 top-full mt-2 w-48 rounded-xl border border-border bg-card p-2 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="absolute right-0 top-full mt-2 w-48 rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] p-2 shadow-2xl animate-in fade-in zoom-in-95 duration-200 z-[110]">
               <button
                 type="button"
-                className="w-full rounded-lg px-4 py-2 text-left text-xs text-foreground hover:bg-muted"
+                className="w-full rounded-lg px-4 py-2 text-left text-xs text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)]"
                 onClick={() => {
                   const to = new Date()
                   const from = new Date(to)
@@ -256,51 +256,53 @@ export function TopNav() {
               {unreadCount > 0 && <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-red-500" />}
             </button>
             {alertsOpen && (
-              <div className="absolute right-0 top-full mt-2 w-64 rounded-xl border border-border bg-card shadow-2xl overflow-hidden py-1 animate-in fade-in zoom-in-95 duration-200">
-                <div className="px-3 py-2 border-b border-border bg-muted/50">
-                  <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Alerts</span>
+              <div className="absolute right-0 top-full mt-2 w-64 rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] shadow-2xl overflow-hidden py-1 animate-in fade-in zoom-in-95 duration-200 z-[110]">
+                <div className="px-3 py-2 border-b border-[var(--border)] bg-[var(--bg-tertiary)]">
+                  <span className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Alerts</span>
                 </div>
                 <div className="max-h-[200px] overflow-y-auto">
                   {alerts.length > 0 ? (
                     alerts.slice(0, 3).map(a => (
-                      <div key={a.id} className="px-3 py-2 border-b border-border last:border-0 hover:bg-muted group cursor-pointer transition-colors">
-                        <p className="text-[11px] font-bold truncate group-hover:text-primary">{a.title}</p>
-                        <p className="text-[10px] text-gray-400 line-clamp-1">{a.message}</p>
+                      <div key={a.id} className="px-3 py-2 border-b border-[var(--border)] last:border-0 hover:bg-[var(--bg-tertiary)] group cursor-pointer transition-colors">
+                        <p className="text-[11px] font-bold truncate group-hover:text-primary text-[var(--text-primary)]">{a.title}</p>
+                        <p className="text-[10px] text-[var(--text-muted)] line-clamp-1">{a.message}</p>
                       </div>
                     ))
                   ) : (
-                    <p className="p-4 text-[11px] text-gray-400 text-center">No alerts</p>
+                    <p className="p-4 text-[11px] text-[var(--text-muted)] text-center">No alerts</p>
                   )}
                 </div>
               </div>
             )}
           </div>
-          <div className="relative" ref={dropdownRef}>
+          <div className="relative z-[110]" ref={dropdownRef}>
             <button
               onClick={() => setShowDropdown(!showDropdown)}
-              className="w-8 h-8 rounded-full bg-blue-500 text-white text-xs font-bold flex items-center justify-center cursor-pointer hover:bg-blue-600 transition-colors"
+              className="w-8 h-8 rounded-full bg-blue-500 text-white text-xs font-bold flex items-center justify-center cursor-pointer hover:bg-blue-600 transition-all z-40 relative shadow-md active:scale-95"
             >
               {userInitials}
             </button>
 
             {showDropdown && (
-              <div className="absolute right-0 top-10 w-56 bg-white dark:bg-[#12121A] border border-gray-200 dark:border-white/10 rounded-xl shadow-xl z-50 overflow-hidden">
-                <div className="px-4 py-3 border-b border-gray-100 dark:border-white/5">
-                  <p className="text-xs text-gray-500">Logged in as</p>
-                  <p className="text-sm font-medium truncate text-foreground">{userEmail}</p>
+              <div className="absolute right-0 top-full mt-2 w-56 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="px-4 py-3 border-b border-[var(--border)] bg-[var(--bg-tertiary)]/50">
+                  <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mb-0.5">Signed in as</p>
+                  <p className="text-sm font-semibold truncate text-[var(--text-primary)]">{userEmail}</p>
                 </div>
-                <button
-                  onClick={() => { setShowDropdown(false); navigate('/settings') }}
-                  className="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 dark:hover:bg-white/5 transition-colors text-foreground flex items-center gap-2"
-                >
-                  <span>⚙️</span> Pengaturan
-                </button>
-                <button
-                  onClick={handleLogout}
-                  className="w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors flex items-center gap-2"
-                >
-                  <span>→</span> Keluar
-                </button>
+                <div className="p-1.5">
+                  <button
+                    onClick={() => { setShowDropdown(false); navigate('/settings') }}
+                    className="w-full text-left px-3 py-2 text-sm hover:bg-[var(--bg-tertiary)] transition-colors text-[var(--text-primary)] flex items-center gap-2 rounded-lg font-medium"
+                  >
+                    <span>⚙️</span> Pengaturan
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-500/10 transition-colors flex items-center gap-2 rounded-lg font-bold"
+                  >
+                    <span>→</span> Keluar
+                  </button>
+                </div>
               </div>
             )}
           </div>

@@ -44,8 +44,8 @@ export function KPICard({
     <div
       className={cn(
         "relative overflow-hidden rounded-2xl p-4 md:p-5 transition-all duration-300 group min-w-0",
-        "bg-white dark:bg-card shadow-[0_2px_8px_rgba(0,0,0,0.06)] dark:shadow-none dark:border dark:border-border",
-        "hover:translate-y-[-2px] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] dark:hover:border-primary/30",
+        "bg-[var(--bg-secondary)] border border-[var(--border)] shadow-sm",
+        "hover:translate-y-[-2px] hover:shadow-md hover:border-[var(--border-hover)]",
         className
       )}
       style={{
@@ -67,23 +67,23 @@ export function KPICard({
       <div className="relative z-10">
         <div className="flex items-center gap-2 mb-2">
           {Icon && (
-            <div className="rounded-lg bg-gray-100 dark:bg-white/5 p-1 transition-colors group-hover:bg-primary/10 shrink-0">
-              <Icon className="h-3.5 w-3.5 text-gray-400 transition-colors group-hover:text-primary" />
+            <div className="rounded-lg bg-[var(--bg-tertiary)] p-1 transition-colors group-hover:bg-primary/10 shrink-0">
+              <Icon className="h-3.5 w-3.5 text-[var(--text-muted)] transition-colors group-hover:text-primary" />
             </div>
           )}
-          <p className="text-[9px] font-bold uppercase tracking-widest text-gray-500 line-clamp-2 leading-tight">{title}</p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-secondary)] line-clamp-2 leading-tight">{title}</p>
         </div>
 
         <div className="flex flex-col">
-          <p className="text-xl font-bold tabular-nums tracking-tight text-foreground truncate">
+          <p className="text-2xl font-bold tabular-nums tracking-tight text-[var(--text-primary)] truncate">
             {value}
           </p>
           {(change !== undefined || trend !== 'neutral') && (
-            <div className="flex items-center gap-2 mt-1.5">
+            <div className="flex items-center gap-2 mt-1.5 font-mono">
               <div className={cn(
-                "flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-bold shrink-0",
+                "flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold shrink-0",
                 changeType === 'positive' ? "bg-green-500/10 text-green-600 dark:text-green-400" :
-                  changeType === 'negative' ? "bg-red-500/10 text-red-600 dark:text-red-400" : "bg-muted text-gray-500"
+                  changeType === 'negative' ? "bg-red-500/10 text-red-600 dark:text-red-400" : "bg-[var(--bg-tertiary)] text-[var(--text-muted)]"
               )}>
                 {trend === 'up' && "↑"}
                 {trend === 'down' && "↓"}

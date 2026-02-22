@@ -55,7 +55,7 @@ export function Register() {
             <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500/10 blur-[120px] rounded-full" />
             <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-500/10 blur-[120px] rounded-full" />
 
-            <Card className="w-full max-w-md border-border/40 bg-card/60 backdrop-blur-xl shadow-2xl rounded-2xl relative z-10">
+            <Card className="w-full max-w-md border-[var(--border)] bg-[var(--bg-secondary)]/80 backdrop-blur-xl shadow-2xl rounded-2xl relative z-10">
                 <CardHeader className="space-y-2 text-center pb-2">
                     <div className="flex justify-center mb-4">
                         <div className="flex items-center gap-2 group">
@@ -67,26 +67,26 @@ export function Register() {
                             </span>
                         </div>
                     </div>
-                    <CardTitle className="text-xl font-bold">Join PROOFIT</CardTitle>
-                    <CardDescription className="text-sm font-medium text-gray-400 uppercase tracking-widest">
+                    <CardTitle className="text-xl font-bold text-[var(--text-primary)]">Join PROOFIT</CardTitle>
+                    <CardDescription className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">
                         Commerce Decision Intelligence
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-4 pt-4">
                         <div className="space-y-1.5">
-                            <Label htmlFor="name">Full Name</Label>
+                            <Label htmlFor="name" className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Full Name</Label>
                             <Input
                                 id="name"
                                 placeholder="John Doe"
                                 value={formData.name}
                                 onChange={handleChange}
                                 required
-                                className="rounded-xl border-border/50 bg-background/50 focus:ring-2 focus:ring-blue-500"
+                                className="rounded-xl border-[var(--border)] bg-[var(--bg-secondary)] focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-[var(--text-primary)] placeholder:text-[var(--text-muted)]"
                             />
                         </div>
                         <div className="space-y-1.5">
-                            <Label htmlFor="email">Email</Label>
+                            <Label htmlFor="email" className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Email</Label>
                             <Input
                                 id="email"
                                 type="email"
@@ -94,29 +94,29 @@ export function Register() {
                                 value={formData.email}
                                 onChange={handleChange}
                                 required
-                                className="rounded-xl border-border/50 bg-background/50 focus:ring-2 focus:ring-blue-500"
+                                className="rounded-xl border-[var(--border)] bg-[var(--bg-secondary)] focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-[var(--text-primary)] placeholder:text-[var(--text-muted)]"
                             />
                         </div>
                         <div className="space-y-1.5">
-                            <Label htmlFor="workspaceName">Workspace Name</Label>
+                            <Label htmlFor="workspaceName" className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Workspace Name</Label>
                             <Input
                                 id="workspaceName"
                                 placeholder="My Brand"
                                 value={formData.workspaceName}
                                 onChange={handleChange}
                                 required
-                                className="rounded-xl border-border/50 bg-background/50 focus:ring-2 focus:ring-blue-500"
+                                className="rounded-xl border-[var(--border)] bg-[var(--bg-secondary)] focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-[var(--text-primary)] placeholder:text-[var(--text-muted)]"
                             />
                         </div>
                         <div className="space-y-1.5">
-                            <Label htmlFor="password">Password</Label>
+                            <Label htmlFor="password" className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Password</Label>
                             <Input
                                 id="password"
                                 type="password"
                                 value={formData.password}
                                 onChange={handleChange}
                                 required
-                                className="rounded-xl border-border/50 bg-background/50 focus:ring-2 focus:ring-blue-500"
+                                className="rounded-xl border-[var(--border)] bg-[var(--bg-secondary)] focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-[var(--text-primary)]"
                             />
                         </div>
 
@@ -142,7 +142,7 @@ export function Register() {
                         </Button>
                     </form>
 
-                    <p className="mt-8 text-center text-sm text-gray-400">
+                    <p className="mt-8 text-center text-xs text-[var(--text-muted)] font-medium uppercase tracking-widest">
                         Already have an account?{' '}
                         <Link to="/login" className="text-blue-500 font-bold hover:underline">
                             Sign In

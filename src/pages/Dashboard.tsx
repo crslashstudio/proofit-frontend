@@ -42,8 +42,8 @@ export function Dashboard() {
       {/* Top Header Section */}
       <section className="flex flex-col md:flex-row md:items-end justify-between gap-4 px-1">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">{t('executiveSummary')}</h1>
-          <p className="text-xs font-semibold text-gray-400 mt-1 uppercase tracking-[0.2em]">Real-time Performance Intelligence</p>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-[var(--text-primary)]">{t('executiveSummary')}</h1>
+          <p className="text-[10px] font-bold text-[var(--text-muted)] mt-1 uppercase tracking-[0.2em]">Real-time Performance Intelligence</p>
         </div>
       </section>
 
@@ -112,7 +112,7 @@ export function Dashboard() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <div className="h-6 w-1 bg-blue-500 rounded-full" />
-              <h2 className="text-base font-bold tracking-tight text-foreground uppercase tracking-widest">{t('channelPerformance')}</h2>
+              <h2 className="text-base font-bold tracking-tight text-[var(--text-primary)] uppercase tracking-widest">{t('channelPerformance')}</h2>
             </div>
             <button className="text-[10px] font-bold text-blue-500 hover:text-blue-600 transition-colors uppercase tracking-widest">{t('insights')} →</button>
           </div>
@@ -127,15 +127,15 @@ export function Dashboard() {
         </section>
 
         {/* SKU Section */}
-        <section className="bg-white/30 dark:bg-white/[0.01] rounded-[2rem] p-4 md:p-6 border border-border">
+        <section className="bg-[var(--bg-secondary)] rounded-[2rem] p-4 md:p-6 border border-[var(--border)] shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
-              <h2 className="text-base font-bold tracking-tight text-foreground uppercase tracking-widest">{t('skuIntelligence')}</h2>
-              <p className="text-[9px] font-bold text-gray-500 mt-0.5 uppercase tracking-widest">Performance Tracking</p>
+              <h2 className="text-base font-bold tracking-tight text-[var(--text-primary)] uppercase tracking-widest">{t('skuIntelligence')}</h2>
+              <p className="text-[9px] font-bold text-[var(--text-muted)] mt-0.5 uppercase tracking-widest">Performance Tracking</p>
             </div>
-            <div className="flex bg-muted/50 p-0.5 rounded-lg shrink-0">
+            <div className="flex bg-[var(--bg-tertiary)] p-0.5 rounded-lg shrink-0 border border-[var(--border)]">
               <button className="px-3 py-1 text-[9px] font-bold text-white bg-blue-500 rounded-md shadow-sm uppercase">Profitability</button>
-              <button className="px-3 py-1 text-[9px] font-bold text-gray-400 hover:text-foreground transition-all uppercase">Inventory</button>
+              <button className="px-3 py-1 text-[9px] font-bold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all uppercase">Inventory</button>
             </div>
           </div>
           <SKUTable data={filteredSkus} />
@@ -145,23 +145,23 @@ export function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <section className="lg:col-span-1 space-y-4">
             <div className="flex items-center justify-between px-1">
-              <h2 className="text-base font-bold tracking-tight text-foreground uppercase tracking-widest">{t('campaign')}</h2>
+              <h2 className="text-base font-bold tracking-tight text-[var(--text-primary)] uppercase tracking-widest">{t('campaign')}</h2>
               <Link to="/campaigns" className="text-[10px] font-bold text-blue-500 hover:text-blue-600 transition-colors uppercase tracking-widest">View All</Link>
             </div>
             <div className="space-y-3">
               {activeCampaigns.slice(0, 3).map(campaign => (
-                <div key={campaign.id} className="glass-card p-4 flex items-center justify-between border-none dark:border dark:border-border">
+                <div key={campaign.id} className="glass-card p-4 flex items-center justify-between border border-[var(--border)] bg-[var(--bg-secondary)] shadow-sm hover:border-[var(--border-hover)] transition-all">
                   <div className="flex items-center gap-3">
                     <div className="h-9 w-9 rounded-xl bg-blue-500/10 flex items-center justify-center">
                       <ShoppingCart className="h-4.5 w-4.5 text-blue-500" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-foreground">{campaign.name}</p>
-                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{campaign.channel}</p>
+                      <p className="text-sm font-bold text-[var(--text-primary)]">{campaign.name}</p>
+                      <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-wider">{campaign.channel}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-bold text-foreground">{campaign.roas}x</p>
+                    <p className="text-sm font-bold text-[var(--text-primary)]">{campaign.roas}x</p>
                     <p className="text-[9px] text-emerald-500 font-bold uppercase tracking-wider">ROAS</p>
                   </div>
                 </div>
@@ -169,22 +169,22 @@ export function Dashboard() {
             </div>
           </section>
 
-          <section className="lg:col-span-2 glass-card p-6 border-none dark:border dark:border-border bg-gradient-to-br from-blue-600/5 to-indigo-600/5">
+          <section className="lg:col-span-2 glass-card p-6 border border-[var(--border)] bg-[var(--bg-tertiary)]/30 backdrop-blur-sm">
             <div className="flex items-center gap-2 mb-4">
               <Sparkles className="h-5 w-5 text-blue-500" />
-              <h2 className="text-base font-bold tracking-tight text-foreground uppercase tracking-widest">AI Intelligence Brief</h2>
+              <h2 className="text-base font-bold tracking-tight text-[var(--text-primary)] uppercase tracking-widest">AI Intelligence Brief</h2>
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+            <p className="text-sm text-[var(--text-secondary)] leading-relaxed mb-6 font-medium">
               Your portfolio margin improved by <span className="text-emerald-500 font-bold">+2.3pp</span> this week. However, <span className="text-red-500 font-bold">3 SKUs</span> in Shopee are currently burning cash.
             </p>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 rounded-2xl bg-white/50 dark:bg-white/[0.02] border border-border">
-                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Top Risk</p>
-                <p className="text-xs font-bold text-foreground truncate">Premium Box Set Margin: -13%</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="p-4 rounded-2xl bg-red-500/5 dark:bg-red-500/10 border border-red-500/20">
+                <p className="text-[9px] font-bold text-red-600 dark:text-red-400 uppercase tracking-widest mb-1">Top Risk</p>
+                <p className="text-xs font-bold text-[var(--text-primary)] truncate">Premium Box Set Margin: -13%</p>
               </div>
-              <div className="p-4 rounded-2xl bg-white/50 dark:bg-white/[0.02] border border-border">
-                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Top Opportunity</p>
-                <p className="text-xs font-bold text-foreground truncate">Scale Looky Gems Bundle</p>
+              <div className="p-4 rounded-2xl bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/20">
+                <p className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-1">Top Opportunity</p>
+                <p className="text-xs font-bold text-[var(--text-primary)] truncate">Scale Looky Gems Bundle</p>
               </div>
             </div>
           </section>

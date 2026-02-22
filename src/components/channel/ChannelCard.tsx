@@ -41,8 +41,8 @@ export function ChannelCard({ data, onExpand, className }: ChannelCardProps) {
     <div
       className={cn(
         "group relative flex flex-col rounded-3xl p-4 md:p-5 transition-all duration-500 min-w-[180px]",
-        "bg-white dark:bg-card shadow-[0_2px_8px_rgba(0,0,0,0.06)] dark:shadow-none dark:border border-border",
-        "hover:translate-y-[-4px] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)]",
+        "bg-[var(--bg-secondary)] border border-[var(--border)] shadow-sm",
+        "hover:translate-y-[-4px] hover:shadow-md hover:border-[var(--border-hover)]",
         className
       )}>
       {/* Channel brand line */}
@@ -54,7 +54,7 @@ export function ChannelCard({ data, onExpand, className }: ChannelCardProps) {
 
       <div className="p-5">
         <div className="flex items-center justify-between mb-5">
-          <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500 opacity-80 group-hover:opacity-100 transition-opacity">
+          <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] group-hover:text-[var(--text-primary)] transition-colors">
             {label}
           </h3>
           <div className={cn(
@@ -67,20 +67,20 @@ export function ChannelCard({ data, onExpand, className }: ChannelCardProps) {
 
         <div className="grid grid-cols-2 gap-y-5 gap-x-3">
           <div className="space-y-1">
-            <p className="text-[9px] uppercase tracking-[0.1em] text-gray-400 font-bold">{t('revenue')}</p>
-            <p className="text-sm font-bold tabular-nums text-gray-700 dark:text-foreground">{formatIDRShort(data.revenue)}</p>
+            <p className="text-[9px] uppercase tracking-[0.1em] text-[var(--text-muted)] font-bold">{t('revenue')}</p>
+            <p className="text-sm font-bold tabular-nums text-[var(--text-primary)]">{formatIDRShort(data.revenue)}</p>
           </div>
           <div className="space-y-1">
-            <p className="text-[9px] uppercase tracking-[0.1em] text-gray-400 font-bold">{t('profit')}</p>
-            <p className="text-sm font-bold tabular-nums text-green-600 dark:text-[#10B981]">{formatIDRShort(data.netProfit)}</p>
+            <p className="text-[9px] uppercase tracking-[0.1em] text-[var(--text-muted)] font-bold">{t('profit')}</p>
+            <p className="text-sm font-bold tabular-nums text-emerald-500">{formatIDRShort(data.netProfit)}</p>
           </div>
           <div className="space-y-1">
-            <p className="text-[9px] uppercase tracking-[0.1em] text-gray-400 font-bold">{t('margin')}</p>
-            <p className="text-sm font-bold tabular-nums text-gray-700 dark:text-foreground">{data.marginPct}%</p>
+            <p className="text-[9px] uppercase tracking-[0.1em] text-[var(--text-muted)] font-bold">{t('margin')}</p>
+            <p className="text-sm font-bold tabular-nums text-[var(--text-primary)]">{data.marginPct}%</p>
           </div>
           <div className="space-y-1">
-            <p className="text-[9px] uppercase tracking-[0.1em] text-gray-400 font-bold">{t('contribution')}</p>
-            <p className="text-sm font-bold tabular-nums text-gray-700 dark:text-foreground">{data.contributionPct}%</p>
+            <p className="text-[9px] uppercase tracking-[0.1em] text-[var(--text-muted)] font-bold">{t('contribution')}</p>
+            <p className="text-sm font-bold tabular-nums text-[var(--text-primary)]">{data.contributionPct}%</p>
           </div>
         </div>
 

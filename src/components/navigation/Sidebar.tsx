@@ -27,7 +27,7 @@ export function Sidebar({ toggleSidebar: _ignore }: { toggleSidebar: () => void 
   return (
     <aside
       className={cn(
-        'flex shrink-0 flex-col border-r border-gray-100 dark:border-border bg-white dark:bg-sidebar transition-all duration-300 ease-in-out',
+        'flex shrink-0 flex-col border-r border-[var(--border)] bg-[var(--bg-secondary)] transition-all duration-300 ease-in-out',
         sidebarCollapsed ? 'w-14' : 'w-[220px]'
       )}
     >
@@ -41,8 +41,8 @@ export function Sidebar({ toggleSidebar: _ignore }: { toggleSidebar: () => void 
               cn(
                 'relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold tracking-wide transition-all duration-300 group',
                 isActive
-                  ? 'bg-blue-500/10 text-blue-500 dark:text-blue-400 border border-blue-500/20 shadow-sm dark:shadow-[0_0_20px_rgba(59,130,246,0.1)]'
-                  : 'text-gray-400 hover:bg-muted dark:hover:bg-white/5 hover:text-foreground'
+                  ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 shadow-sm'
+                  : 'text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]'
               )
             }
           >
@@ -58,11 +58,11 @@ export function Sidebar({ toggleSidebar: _ignore }: { toggleSidebar: () => void 
           </NavLink>
         ))}
       </nav>
-      <div className="hidden md:block border-t border-gray-100 dark:border-border p-3">
+      <div className="hidden md:block border-t border-[var(--border)] p-3">
         <button
           type="button"
           onClick={toggleSidebar}
-          className="flex w-full items-center justify-center gap-3 rounded-xl px-3 py-2.5 text-xs font-medium text-gray-400 hover:bg-muted dark:hover:bg-white/5 hover:text-foreground transition-all"
+          className="flex w-full items-center justify-center gap-3 rounded-xl px-3 py-2.5 text-xs font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)] transition-all"
           aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {sidebarCollapsed ? (

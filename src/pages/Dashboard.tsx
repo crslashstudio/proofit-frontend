@@ -6,8 +6,7 @@ import {
   Percent,
   AlertTriangle,
   Package,
-  ShoppingCart,
-  ChevronRight
+  ShoppingCart
 } from 'lucide-react'
 import {
   globalKPI,

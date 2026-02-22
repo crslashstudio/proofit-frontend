@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
     Globe,
@@ -9,7 +9,10 @@ import {
     ExternalLink,
     Loader2,
     ShieldCheck,
-    Lock
+    Lock,
+    Check,
+    X,
+    Clock
 } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
 import { cn } from '@/lib/utils'
@@ -77,9 +80,57 @@ export function Settings() {
     const [activeTab, setActiveTab] = useState<Tab>('integrations')
     const [connecting, setConnecting] = useState(false)
 
-    // Mock connected data for TikTok if it was just connected (simulation)
-    const [channels] = useState<Channel[]>(INITIAL_CHANNELS)
+    const [channels, setChannels] = useState<Channel[]>(INITIAL_CHANNELS)
+    const [syncing, setSyncing] = useState(false)
+    const [syncSuccess, setSyncSuccess] = useState(false)
+    const [lastSynced, setLastSynced] = useState<string | null>(null)
     const [workspaceName, setWorkspaceName] = useState('My Workspace')
+
+    useEffect(() => {
+        const checkConnection = async () => {
+            try {
+                const response = await api.get('/integrations')
+                if (response.data.success) {
+                    const integrations = response.data.data
+                    const tiktok = integrations.find((i: any) => i.channel === 'tiktok' && i.is_active)
+
+                    if (tiktok) {
+                        setChannels(prev => prev.map(ch =>
+                            ch.id === 'tiktok'
+                                ? { ...ch, status: 'connected', shopName: 'Slashtech Indonesia', shopId: tiktok.shop_id || '74321098' }
+                                : ch
+                        ))
+                        // Assuming last_synced might be in the integration data
+                        if (tiktok.last_synced_at) {
+                            setLastSynced(new Date(tiktok.last_synced_at).toLocaleString())
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch integrations:', error)
+            }
+        }
+        checkConnection()
+    }, [])
+
+    const handleSync = async () => {
+        try {
+            setSyncing(true)
+            const response = await api.post('/integrations/tiktok/sync')
+            if (response.data.success) {
+                const { orders, products } = response.data.data
+                alert(`Synced ${orders} orders and ${products} products`)
+                setSyncSuccess(true)
+                setLastSynced(new Date().toLocaleString())
+                setTimeout(() => setSyncSuccess(false), 3000)
+            }
+        } catch (error) {
+            console.error('Sync error:', error)
+            alert('Sync failed, please try again')
+        } finally {
+            setSyncing(false)
+        }
+    }
 
     const handleConnectTikTok = async () => {
         try {
@@ -157,25 +208,64 @@ export function Settings() {
                         </p>
 
                         {ch.status === 'connected' && (
-                            <div className="mb-6 p-3 rounded-xl bg-muted/50 dark:bg-white/5 border border-border">
-                                <div className="flex items-center justify-between text-xs font-medium">
-                                    <span className="text-gray-400">Shop Name</span>
-                                    <span className="text-foreground">{ch.shopName || 'Official Store'}</span>
+                            <div className="mb-6 p-4 rounded-xl bg-muted/50 dark:bg-white/5 border border-border">
+                                <div className="flex items-center justify-between text-sm font-medium">
+                                    <div className="flex flex-col gap-1">
+                                        <span className="text-gray-400 text-xs">Shop Name</span>
+                                        <span className="text-foreground">{ch.shopName || 'Official Store'}</span>
+                                    </div>
+                                    <div className="flex flex-col gap-1 text-right">
+                                        <span className="text-gray-400 text-xs">Shop ID</span>
+                                        <span className="text-foreground font-mono">{ch.shopId || '74321098'}</span>
+                                    </div>
                                 </div>
-                                <div className="flex items-center justify-between text-xs font-medium mt-1">
-                                    <span className="text-gray-400">Shop ID</span>
-                                    <span className="text-foreground font-mono">{ch.shopId || '74321098'}</span>
-                                </div>
+                                {ch.id === 'tiktok' && lastSynced && (
+                                    <div className="mt-3 pt-3 border-t border-border flex items-center gap-2 text-[10px] text-gray-400 font-medium">
+                                        <Clock className="h-3 w-3" />
+                                        Last synced: {lastSynced}
+                                    </div>
+                                )}
                             </div>
                         )}
 
-                        <div className="flex items-center justify-end">
+                        <div className="flex items-center justify-between">
                             {ch.status === 'connected' ? (
-                                <button
-                                    className="px-4 py-2 rounded-xl text-xs font-bold text-red-500 hover:bg-red-500/10 transition-all uppercase tracking-wider"
-                                >
-                                    {t('disconnect')}
-                                </button>
+                                <>
+                                    <button
+                                        className="px-4 py-2 rounded-xl text-xs font-bold text-red-500 hover:bg-red-500/10 transition-all uppercase tracking-wider"
+                                    >
+                                        {t('disconnect')}
+                                    </button>
+
+                                    {ch.id === 'tiktok' && (
+                                        <button
+                                            onClick={handleSync}
+                                            disabled={syncing}
+                                            className={cn(
+                                                "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all",
+                                                syncSuccess
+                                                    ? "bg-emerald-500 text-white"
+                                                    : "bg-blue-500 hover:bg-blue-600 text-white shadow-lg shadow-blue-500/20 active:scale-95"
+                                            )}
+                                        >
+                                            {syncing ? (
+                                                <>
+                                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                                    Syncing...
+                                                </>
+                                            ) : syncSuccess ? (
+                                                <>
+                                                    <Check className="h-4 w-4" />
+                                                    Synced
+                                                </>
+                                            ) : (
+                                                <>
+                                                    Sync Now
+                                                </>
+                                            )}
+                                        </button>
+                                    )}
+                                </>
                             ) : ch.status === 'coming_soon' ? (
                                 <button
                                     disabled

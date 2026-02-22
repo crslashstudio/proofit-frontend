@@ -92,10 +92,10 @@ export function Settings() {
             try {
                 const response = await api.get('/integrations')
                 const integrations = response.data.data || []
-                const tiktok = integrations.find((i: any) => i.channel === 'tiktok' && i.is_active)
+                const tiktok = integrations.find((i: any) => i.channel === 'tiktok' && i.isActive === true)
                 if (tiktok) {
                     setTiktokConnected(true)
-                    setTiktokShopName(tiktok.shop_name)
+                    setTiktokShopName(tiktok.shopName)
                 }
             } catch (error) {
                 console.error('Failed to fetch integrations:', error)

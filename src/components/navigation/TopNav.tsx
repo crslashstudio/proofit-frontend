@@ -18,7 +18,6 @@ const CHANNELS: { id: ChannelId; label: string; color: string; letter: string }[
 export function TopNav() {
   const {
     user,
-    logout,
     selectedChannel,
     setChannel,
     selectedWorkspace,
@@ -66,11 +65,6 @@ export function TopNav() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const handleLogout = () => {
-    localStorage.removeItem('proofit_token')
-    logout() // Use the store's logout
-    window.location.href = '/login'
-  }
 
   const userInitials = user?.email?.substring(0, 2).toUpperCase() || '??'
   const userEmail = user?.email || ''
@@ -297,7 +291,10 @@ export function TopNav() {
                     <span>⚙️</span> Pengaturan
                   </button>
                   <button
-                    onClick={handleLogout}
+                    onClick={() => {
+                      localStorage.removeItem('proofit_token')
+                      window.location.href = '/login'
+                    }}
                     className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-500/10 transition-colors flex items-center gap-2 rounded-lg font-bold"
                   >
                     <span>→</span> Keluar

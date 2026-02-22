@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import {
     Globe,
     Building2,
@@ -71,13 +70,8 @@ const INITIAL_CHANNELS: Channel[] = [
 
 export function Settings() {
     const { t, user } = useAppStore()
-    const navigate = useNavigate()
     const [activeTab, setActiveTab] = useState<Tab>('integrations')
-    const [connecting, setConnecting] = useState(false)
-
-    const [channels] = useState<Channel[]>(INITIAL_CHANNELS)
-    const [tiktokConnected, setTiktokConnected] = useState(false)
-    const [tiktokShopName, setTiktokShopName] = useState('')
+    const [channels, setChannels] = useState<Channel[]>(INITIAL_CHANNELS)
     const [syncing, setSyncing] = useState(false)
     const [disconnecting, setDisconnecting] = useState(false)
     const [workspaceName, setWorkspaceName] = useState('My Workspace')
@@ -87,13 +81,23 @@ export function Settings() {
             try {
                 const response = await api.get('/integrations')
                 const integrations = response.data.data || []
-                const tiktok = integrations.find((i: any) =>
-                    i.channel === 'tiktok' && i.isActive === true
-                )
-                if (tiktok) {
-                    setTiktokConnected(true)
-                    setTiktokShopName(tiktok.shopName)
-                }
+
+                setChannels(prev => prev.map(channel => {
+                    if (channel.id === 'tiktok') {
+                        const tiktok = integrations.find(
+                            (i: any) => i.channel === 'tiktok' && i.isActive === true
+                        )
+                        if (tiktok) {
+                            return {
+                                ...channel,
+                                status: 'connected' as const,
+                                shopName: tiktok.shopName,
+                                shopId: tiktok.shopId
+                            }
+                        }
+                    }
+                    return channel
+                }))
             } catch (error) {
                 console.error('Failed to fetch integrations:', error)
             }
@@ -101,13 +105,26 @@ export function Settings() {
         fetchIntegrations()
     }, [])
 
+    const handleConnect = async (channelId: string) => {
+        if (channelId === 'tiktok') {
+            try {
+                const response = await api.get('/integrations/tiktok/connect')
+                if (response.data.success) {
+                    window.location.href = response.data.data.authUrl
+                }
+            } catch (error: any) {
+                alert('Gagal connect: ' + (error.response?.data?.error || error.message))
+            }
+        }
+    }
+
     const handleSync = async () => {
         try {
             setSyncing(true)
             const response = await api.post('/integrations/tiktok/sync')
             if (response.data.success) {
                 const { orders, products } = response.data.data
-                alert(`✅ Berhasil sync ${orders} orders dan ${products} produk`)
+                alert(`✅ Berhasil sync ${orders} orders dan ${products} produk dari TikTok Shop`)
             }
         } catch (error: any) {
             alert('❌ Sync gagal: ' + (error.response?.data?.error || error.message))
@@ -116,41 +133,18 @@ export function Settings() {
         }
     }
 
-    const handleConnectTikTok = async () => {
-        try {
-            setConnecting(true)
-            const token = localStorage.getItem('proofit_token')
-            if (!token) {
-                navigate('/login')
-                return
-            }
-            const response = await api.get('/integrations/tiktok/connect')
-            if (response.data.success) {
-                window.location.href = response.data.data.authUrl
-            } else {
-                console.error('Connection failed:', response.data.message)
-                alert(t('connectionError'))
-            }
-        } catch (error: any) {
-            console.error('Connect error:', error)
-            if (error.response?.status !== 401) {
-                alert(t('connectionError'))
-            }
-        } finally {
-            setConnecting(false)
-        }
-    }
-
-    const handleDisconnect = async () => {
+    const handleDisconnect = async (channelId: string) => {
         if (!confirm('Yakin ingin memutus koneksi TikTok Shop?')) return
         try {
             setDisconnecting(true)
-            await api.delete('/integrations/tiktok')
-            setTiktokConnected(false)
-            setTiktokShopName('')
-            alert('TikTok Shop berhasil diputus')
+            await api.delete(`/integrations/${channelId}`)
+            setChannels(prev => prev.map(ch =>
+                ch.id === channelId
+                    ? { ...ch, status: 'not_connected' as const, shopName: undefined }
+                    : ch
+            ))
         } catch (error: any) {
-            alert('Gagal memutus: ' + (error.response?.data?.error || error.message))
+            alert('Gagal disconnect: ' + (error.response?.data?.error || error.message))
         } finally {
             setDisconnecting(false)
         }
@@ -164,106 +158,120 @@ export function Settings() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {channels.map((ch) => {
-                    const isConnected = ch.id === 'tiktok' ? tiktokConnected : ch.status === 'connected'
-                    return (
-                        <div
-                            key={ch.id}
-                            className="glass-card p-5 border border-[var(--border)] bg-[var(--bg-secondary)] overflow-hidden relative group transition-all hover:shadow-lg hover:border-[var(--border-hover)]"
-                        >
-                            <div className="flex items-center gap-3 mb-3">
+                {channels.map(channel => (
+                    <div
+                        key={channel.id}
+                        className={cn(
+                            "rounded-2xl border p-5 transition-all duration-200",
+                            "bg-[var(--bg-secondary)] border-[var(--border)]",
+                            "hover:border-[var(--border-hover)]",
+                            channel.status === 'connected' && "border-green-500/30"
+                        )}
+                    >
+                        {/* Header */}
+                        <div className="flex items-start justify-between mb-3">
+                            <div className="flex items-center gap-3">
                                 <div
-                                    className="h-10 w-10 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-sm"
-                                    style={{ backgroundColor: ch.color }}
+                                    className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+                                    style={{ backgroundColor: channel.color }}
                                 >
-                                    {ch.letter}
+                                    {channel.letter}
                                 </div>
                                 <div>
-                                    <h3 className="font-semibold text-[var(--text-primary)]">{ch.name}</h3>
-                                    {isConnected ? (
-                                        <span className="text-xs bg-green-100 dark:bg-green-500/15 text-green-600 dark:text-green-400 px-2 py-0.5 rounded-full inline-flex items-center gap-1 font-medium">
-                                            ✓ {ch.id === 'tiktok' ? 'Terhubung' : t('connected')}
+                                    <h3 className="font-semibold text-sm text-[var(--text-primary)]">
+                                        {channel.name}
+                                    </h3>
+                                    {channel.status === 'connected' && (
+                                        <span className="inline-flex items-center gap-1 text-[10px] font-medium bg-green-100 dark:bg-green-500/15 text-green-600 dark:text-green-400 px-2 py-0.5 rounded-full mt-0.5">
+                                            <span className="w-1.5 h-1.5 bg-green-500 rounded-full inline-block"></span>
+                                            {t('connected')}
                                         </span>
-                                    ) : ch.status === 'coming_soon' ? (
-                                        <span className="text-xs bg-amber-100 dark:bg-amber-500/15 text-amber-600 px-2 py-0.5 rounded-full">
+                                    )}
+                                    {channel.status === 'not_connected' && (
+                                        <span className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider mt-0.5 block font-bold">
+                                            {t('notConnected')}
+                                        </span>
+                                    )}
+                                    {channel.status === 'coming_soon' && (
+                                        <span className="inline-flex items-center text-[10px] font-medium bg-amber-100 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded-full mt-0.5">
                                             {t('comingSoon')}
-                                        </span>
-                                    ) : (
-                                        <span className="text-xs bg-[var(--bg-tertiary)] text-[var(--text-muted)] px-2 py-0.5 rounded-full border border-[var(--border)]">
-                                            {ch.id === 'tiktok' ? 'Belum Terhubung' : t('notConnected')}
                                         </span>
                                     )}
                                 </div>
                             </div>
-
-                            {isConnected && ch.id === 'tiktok' && (
-                                <p className="text-sm text-[var(--text-secondary)] mb-1">
-                                    🏪 {tiktokShopName || 'Official Store'}
-                                </p>
-                            )}
-
-                            <p className="text-xs text-[var(--text-muted)] mb-4 leading-relaxed">
-                                {ch.description}
-                            </p>
-
-                            <div className="flex gap-2">
-                                {isConnected ? (
-                                    <>
-                                        {ch.id === 'tiktok' ? (
-                                            <>
-                                                <button
-                                                    onClick={handleSync}
-                                                    disabled={syncing}
-                                                    className="flex-1 bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white rounded-xl py-2 text-sm font-medium transition-all"
-                                                >
-                                                    {syncing ? '⟳ Syncing...' : '↻ Sync Sekarang'}
-                                                </button>
-                                                <button
-                                                    onClick={handleDisconnect}
-                                                    disabled={disconnecting}
-                                                    className="px-3 border border-red-300 dark:border-red-500/30 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl text-sm transition-all"
-                                                >
-                                                    {disconnecting ? '...' : 'Putus'}
-                                                </button>
-                                            </>
-                                        ) : (
-                                            <button
-                                                className="w-full px-4 py-2 border border-red-500/50 rounded-xl text-xs font-bold text-red-500 hover:bg-red-500/10 transition-all uppercase tracking-wider"
-                                            >
-                                                Putuskan
-                                            </button>
-                                        )}
-                                    </>
-                                ) : ch.status === 'coming_soon' ? (
-                                    <button
-                                        disabled
-                                        className="w-full px-4 py-2 rounded-xl text-xs font-bold text-gray-400 bg-[var(--bg-tertiary)] cursor-not-allowed uppercase tracking-wider border border-[var(--border)]"
-                                    >
-                                        {t('comingSoon')}
-                                    </button>
-                                ) : (
-                                    <button
-                                        disabled={connecting && ch.id === 'tiktok'}
-                                        onClick={() => ch.id === 'tiktok' && handleConnectTikTok()}
-                                        className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-500/20 active:scale-95 transition-all uppercase tracking-wider"
-                                    >
-                                        {connecting && ch.id === 'tiktok' ? (
-                                            <>
-                                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                                Connecting...
-                                            </>
-                                        ) : (
-                                            <>
-                                                Hubungkan Channel
-                                                <ExternalLink className="h-3 w-3" />
-                                            </>
-                                        )}
-                                    </button>
-                                )}
-                            </div>
                         </div>
-                    )
-                })}
+
+                        {/* Shop name if connected */}
+                        {channel.status === 'connected' && channel.shopName && (
+                            <p className="text-xs font-medium text-[var(--text-secondary)] mb-2">
+                                🏪 {channel.shopName}
+                            </p>
+                        )}
+
+                        {/* Description */}
+                        <p className="text-xs text-[var(--text-muted)] mb-4 leading-relaxed">
+                            {channel.description}
+                        </p>
+
+                        {/* Action Buttons */}
+                        {channel.status === 'connected' && (
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={handleSync}
+                                    disabled={syncing}
+                                    className={cn(
+                                        "flex-1 py-2 px-3 rounded-xl text-xs font-semibold transition-all duration-150",
+                                        "bg-blue-500 hover:bg-blue-600 text-white",
+                                        "disabled:opacity-50 disabled:cursor-not-allowed",
+                                        "flex items-center justify-center gap-1.5"
+                                    )}
+                                >
+                                    {syncing ? (
+                                        <><Loader2 className="w-3 h-3 animate-spin" /> Syncing...</>
+                                    ) : (
+                                        '↻ Sync Sekarang'
+                                    )}
+                                </button>
+                                <button
+                                    onClick={() => handleDisconnect(channel.id)}
+                                    disabled={disconnecting}
+                                    className={cn(
+                                        "px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-150",
+                                        "border border-red-300 dark:border-red-500/30",
+                                        "text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10",
+                                        "disabled:opacity-50 disabled:cursor-not-allowed"
+                                    )}
+                                >
+                                    {disconnecting ? '...' : 'Putus'}
+                                </button>
+                            </div>
+                        )}
+
+                        {channel.status === 'not_connected' && (
+                            <button
+                                onClick={() => handleConnect(channel.id)}
+                                className={cn(
+                                    "w-full py-2 px-3 rounded-xl text-xs font-semibold transition-all duration-150",
+                                    "border border-[var(--border)] hover:border-[var(--border-hover)]",
+                                    "text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)]",
+                                    "flex items-center justify-center gap-1.5"
+                                )}
+                            >
+                                <ExternalLink className="w-3 h-3" />
+                                {t('connectChannel')}
+                            </button>
+                        )}
+
+                        {channel.status === 'coming_soon' && (
+                            <button
+                                disabled
+                                className="w-full py-2 px-3 rounded-xl text-xs font-semibold text-[var(--text-muted)] cursor-not-allowed"
+                            >
+                                {t('comingSoon')}
+                            </button>
+                        )}
+                    </div>
+                ))}
             </div>
         </div>
     )

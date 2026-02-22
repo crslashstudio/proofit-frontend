@@ -79,37 +79,32 @@ export function Settings() {
     const [activeTab, setActiveTab] = useState<Tab>('integrations')
     const [connecting, setConnecting] = useState(false)
 
-    const [channels, setChannels] = useState<Channel[]>(INITIAL_CHANNELS)
+    const [channels] = useState<Channel[]>(INITIAL_CHANNELS)
+    const [tiktokConnected, setTiktokConnected] = useState(false)
+    const [tiktokShopName, setTiktokShopName] = useState('')
     const [syncing, setSyncing] = useState(false)
     const [syncSuccess, setSyncSuccess] = useState(false)
     const [lastSynced, setLastSynced] = useState<string | null>(null)
     const [workspaceName, setWorkspaceName] = useState('My Workspace')
 
     useEffect(() => {
-        const checkConnection = async () => {
+        const fetchIntegrations = async () => {
             try {
                 const response = await api.get('/integrations')
-                if (response.data.success) {
-                    const integrations = response.data.data
-                    const tiktok = integrations.find((i: any) => i.channel === 'tiktok' && i.is_active)
-
-                    if (tiktok) {
-                        setChannels(prev => prev.map(ch =>
-                            ch.id === 'tiktok'
-                                ? { ...ch, status: 'connected', shopName: 'Slashtech Indonesia', shopId: tiktok.shop_id || '74321098' }
-                                : ch
-                        ))
-                        // Assuming last_synced might be in the integration data
-                        if (tiktok.last_synced_at) {
-                            setLastSynced(new Date(tiktok.last_synced_at).toLocaleString())
-                        }
+                const integrations = response.data.data || []
+                const tiktok = integrations.find((i: any) => i.channel === 'tiktok' && i.is_active)
+                if (tiktok) {
+                    setTiktokConnected(true)
+                    setTiktokShopName(tiktok.shop_name)
+                    if (tiktok.last_synced_at) {
+                        setLastSynced(new Date(tiktok.last_synced_at).toLocaleString())
                     }
                 }
             } catch (error) {
                 console.error('Failed to fetch integrations:', error)
             }
         }
-        checkConnection()
+        fetchIntegrations()
     }, [])
 
     const handleSync = async () => {
@@ -118,14 +113,14 @@ export function Settings() {
             const response = await api.post('/integrations/tiktok/sync')
             if (response.data.success) {
                 const { orders, products } = response.data.data
-                alert(`Synced ${orders} orders and ${products} products`)
+                alert(`Berhasil sync ${orders} orders and ${products} produk`)
                 setSyncSuccess(true)
                 setLastSynced(new Date().toLocaleString())
                 setTimeout(() => setSyncSuccess(false), 3000)
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Sync error:', error)
-            alert('Sync failed, please try again')
+            alert('Sync gagal: ' + (error.response?.data?.error || error.message))
         } finally {
             setSyncing(false)
         }
@@ -166,134 +161,139 @@ export function Settings() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {channels.map((ch) => (
-                    <div
-                        key={ch.id}
-                        className="glass-card p-5 border-none dark:border dark:border-border overflow-hidden relative group transition-all hover:shadow-lg hover:shadow-blue-500/5"
-                    >
-                        <div className="flex items-start justify-between mb-4">
-                            <div className="flex items-center gap-4">
-                                <div
-                                    className="h-12 w-12 rounded-xl flex items-center justify-center text-white text-xl font-bold shadow-sm"
-                                    style={{ backgroundColor: ch.color }}
-                                >
-                                    {ch.letter}
-                                </div>
-                                <div>
-                                    <h3 className="font-bold text-foreground">{ch.name}</h3>
-                                    <div className="mt-1">
-                                        {ch.status === 'connected' ? (
-                                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-bold uppercase tracking-wider">
-                                                <CheckCircle2 className="h-3 w-3" />
-                                                {t('connected')}
-                                            </span>
-                                        ) : ch.status === 'coming_soon' ? (
-                                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 text-[10px] font-bold uppercase tracking-wider">
-                                                <AlertCircle className="h-3 w-3" />
-                                                {t('comingSoon')}
-                                            </span>
-                                        ) : (
-                                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-gray-500/10 text-gray-500 text-[10px] font-bold uppercase tracking-wider">
-                                                {t('notConnected')}
-                                            </span>
-                                        )}
+                {channels.map((ch) => {
+                    const isConnected = ch.id === 'tiktok' ? tiktokConnected : ch.status === 'connected'
+                    return (
+                        <div
+                            key={ch.id}
+                            className="glass-card p-5 border-none dark:border dark:border-border overflow-hidden relative group transition-all hover:shadow-lg hover:shadow-blue-500/5"
+                        >
+                            <div className="flex items-start justify-between mb-4">
+                                <div className="flex items-center gap-4">
+                                    <div
+                                        className="h-12 w-12 rounded-xl flex items-center justify-center text-white text-xl font-bold shadow-sm"
+                                        style={{ backgroundColor: ch.color }}
+                                    >
+                                        {ch.letter}
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-foreground">{ch.name}</h3>
+                                        <div className="mt-1">
+                                            {isConnected ? (
+                                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-bold uppercase tracking-wider">
+                                                    <CheckCircle2 className="h-3 w-3" />
+                                                    {ch.id === 'tiktok' ? 'TERHUBUNG' : t('connected')}
+                                                </span>
+                                            ) : ch.status === 'coming_soon' ? (
+                                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 text-[10px] font-bold uppercase tracking-wider">
+                                                    <AlertCircle className="h-3 w-3" />
+                                                    {t('comingSoon')}
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-gray-500/10 text-gray-500 text-[10px] font-bold uppercase tracking-wider">
+                                                    {ch.id === 'tiktok' ? 'BELUM TERHUBUNG' : t('notConnected')}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 leading-relaxed">
-                            {ch.description}
-                        </p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 leading-relaxed">
+                                {ch.description}
+                            </p>
 
-                        {ch.status === 'connected' && (
-                            <div className="mb-6 p-4 rounded-xl bg-muted/50 dark:bg-white/5 border border-border">
-                                <div className="flex items-center justify-between text-sm font-medium">
-                                    <div className="flex flex-col gap-1">
-                                        <span className="text-gray-400 text-xs">Shop Name</span>
-                                        <span className="text-foreground">{ch.shopName || 'Official Store'}</span>
+                            {isConnected && (
+                                <div className="mb-6 p-4 rounded-xl bg-muted/50 dark:bg-white/5 border border-border">
+                                    <div className="flex items-center justify-between text-sm font-medium">
+                                        <div className="flex flex-col gap-1">
+                                            <span className="text-gray-400 text-xs">Shop Name</span>
+                                            <span className="text-foreground">
+                                                {ch.id === 'tiktok' ? tiktokShopName : (ch.shopName || 'Official Store')}
+                                            </span>
+                                        </div>
+                                        <div className="flex flex-col gap-1 text-right">
+                                            <span className="text-gray-400 text-xs">Shop ID</span>
+                                            <span className="text-foreground font-mono">{ch.shopId || '74321098'}</span>
+                                        </div>
                                     </div>
-                                    <div className="flex flex-col gap-1 text-right">
-                                        <span className="text-gray-400 text-xs">Shop ID</span>
-                                        <span className="text-foreground font-mono">{ch.shopId || '74321098'}</span>
-                                    </div>
+                                    {ch.id === 'tiktok' && lastSynced && (
+                                        <div className="mt-3 pt-3 border-t border-border flex items-center gap-2 text-[10px] text-gray-400 font-medium">
+                                            <Clock className="h-3 w-3" />
+                                            Last synced: {lastSynced}
+                                        </div>
+                                    )}
                                 </div>
-                                {ch.id === 'tiktok' && lastSynced && (
-                                    <div className="mt-3 pt-3 border-t border-border flex items-center gap-2 text-[10px] text-gray-400 font-medium">
-                                        <Clock className="h-3 w-3" />
-                                        Last synced: {lastSynced}
-                                    </div>
+                            )}
+
+                            <div className="flex items-center justify-between">
+                                {isConnected ? (
+                                    <>
+                                        <button
+                                            className="px-4 py-2 border border-red-500/50 rounded-xl text-xs font-bold text-red-500 hover:bg-red-500/10 transition-all uppercase tracking-wider"
+                                        >
+                                            Putuskan
+                                        </button>
+
+                                        {ch.id === 'tiktok' && (
+                                            <button
+                                                onClick={handleSync}
+                                                disabled={syncing}
+                                                className={cn(
+                                                    "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all",
+                                                    syncSuccess
+                                                        ? "bg-emerald-500 text-white"
+                                                        : "bg-blue-500 hover:bg-blue-600 text-white shadow-lg shadow-blue-500/20 active:scale-95"
+                                                )}
+                                            >
+                                                {syncing ? (
+                                                    <>
+                                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                                        Syncing...
+                                                    </>
+                                                ) : syncSuccess ? (
+                                                    <>
+                                                        <Check className="h-4 w-4" />
+                                                        Synced
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        Sync Sekarang
+                                                    </>
+                                                )}
+                                            </button>
+                                        )}
+                                    </>
+                                ) : ch.status === 'coming_soon' ? (
+                                    <button
+                                        disabled
+                                        className="px-4 py-2 rounded-xl text-xs font-bold text-gray-400 bg-gray-100 dark:bg-white/5 cursor-not-allowed uppercase tracking-wider"
+                                    >
+                                        {t('comingSoon')}
+                                    </button>
+                                ) : (
+                                    <button
+                                        disabled={connecting && ch.id === 'tiktok'}
+                                        onClick={() => ch.id === 'tiktok' && handleConnectTikTok()}
+                                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-500/20 active:scale-95 transition-all uppercase tracking-wider"
+                                    >
+                                        {connecting && ch.id === 'tiktok' ? (
+                                            <>
+                                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                                Connecting...
+                                            </>
+                                        ) : (
+                                            <>
+                                                Hubungkan Channel
+                                                <ExternalLink className="h-3 w-3" />
+                                            </>
+                                        )}
+                                    </button>
                                 )}
                             </div>
-                        )}
-
-                        <div className="flex items-center justify-between">
-                            {ch.status === 'connected' ? (
-                                <>
-                                    <button
-                                        className="px-4 py-2 rounded-xl text-xs font-bold text-red-500 hover:bg-red-500/10 transition-all uppercase tracking-wider"
-                                    >
-                                        {t('disconnect')}
-                                    </button>
-
-                                    {ch.id === 'tiktok' && (
-                                        <button
-                                            onClick={handleSync}
-                                            disabled={syncing}
-                                            className={cn(
-                                                "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all",
-                                                syncSuccess
-                                                    ? "bg-emerald-500 text-white"
-                                                    : "bg-blue-500 hover:bg-blue-600 text-white shadow-lg shadow-blue-500/20 active:scale-95"
-                                            )}
-                                        >
-                                            {syncing ? (
-                                                <>
-                                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                                    Syncing...
-                                                </>
-                                            ) : syncSuccess ? (
-                                                <>
-                                                    <Check className="h-4 w-4" />
-                                                    Synced
-                                                </>
-                                            ) : (
-                                                <>
-                                                    Sync Now
-                                                </>
-                                            )}
-                                        </button>
-                                    )}
-                                </>
-                            ) : ch.status === 'coming_soon' ? (
-                                <button
-                                    disabled
-                                    className="px-4 py-2 rounded-xl text-xs font-bold text-gray-400 bg-gray-100 dark:bg-white/5 cursor-not-allowed uppercase tracking-wider"
-                                >
-                                    {t('comingSoon')}
-                                </button>
-                            ) : (
-                                <button
-                                    disabled={connecting && ch.id === 'tiktok'}
-                                    onClick={() => ch.id === 'tiktok' && handleConnectTikTok()}
-                                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-500/20 active:scale-95 transition-all uppercase tracking-wider"
-                                >
-                                    {connecting && ch.id === 'tiktok' ? (
-                                        <>
-                                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                            Connecting...
-                                        </>
-                                    ) : (
-                                        <>
-                                            {t('connectChannel')}
-                                            <ExternalLink className="h-3 w-3" />
-                                        </>
-                                    )}
-                                </button>
-                            )}
                         </div>
-                    </div>
-                ))}
+                    )
+                })}
             </div>
         </div>
     )

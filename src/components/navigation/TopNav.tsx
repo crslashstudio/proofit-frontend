@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Zap, Bell, ChevronDown, Calendar, Moon, Sun, LayoutGrid, Menu, User, Settings, LogOut } from 'lucide-react'
+import { Zap, Bell, ChevronDown, Calendar, Moon, Sun, LayoutGrid, Menu, Settings, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/useAppStore'
 import { workspaces } from '@/data/mockData'

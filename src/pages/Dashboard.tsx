@@ -1,74 +1,68 @@
-import { useEffect } from 'react'
+import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  DollarSign,
   TrendingUp,
+  Sparkles,
   Percent,
   AlertTriangle,
   Package,
-  Factory,
-  Sparkles,
-  ChevronRight,
+  ShoppingCart,
+  ChevronRight
 } from 'lucide-react'
-import { KPICard } from '@/components/kpi/KPICard'
-import { ChannelCard } from '@/components/channel/ChannelCard'
-import { SKUTable } from '@/components/sku/SKUTable'
 import {
   globalKPI,
   channelPerformance,
   skus,
   campaigns,
-  formatIDRShort,
+  formatIDR
 } from '@/data/mockData'
+import { KPICard } from '@/components/kpi/KPICard'
+import { ChannelCard } from '@/components/channel/ChannelCard'
+import { SKUTable } from '@/components/sku/SKUTable'
 import { useAppStore } from '@/store/useAppStore'
-import { alerts as mockAlerts } from '@/data/mockData'
-import { cn } from '@/lib/utils'
 
 export function Dashboard() {
-  const { selectedChannel, setAlerts } = useAppStore()
+  const { selectedChannel, t } = useAppStore()
 
-  useEffect(() => {
-    setAlerts(mockAlerts.map((a) => ({ ...a, read: a.read })))
-  }, [setAlerts])
+  const filteredChannels = useMemo(() => {
+    if (selectedChannel === 'all') return channelPerformance
+    return channelPerformance.filter((ch) => ch.channel === selectedChannel)
+  }, [selectedChannel])
 
-  const filteredChannels =
-    selectedChannel === 'all'
-      ? channelPerformance
-      : channelPerformance.filter((c) => c.channel === selectedChannel)
+  const filteredSkus = useMemo(() => {
+    if (selectedChannel === 'all') return skus
+    return skus.filter((sku) => sku.channel === selectedChannel)
+  }, [selectedChannel])
 
-  const filteredSkus =
-    selectedChannel === 'all'
-      ? skus
-      : skus.filter((s) => s.channel === selectedChannel)
+  const activeCampaigns = useMemo(() => {
+    return campaigns.filter(c => c.status === 'active')
+  }, [])
 
   return (
-    <div className="p-6 lg:p-10 space-y-12">
-      {/* Header section - Focus on fixing the massive title */}
-      <div className="flex items-center justify-between border-l-4 border-blue-500 pl-4 py-1 transition-all">
+    <div className="space-y-8 pb-10">
+      {/* Top Header Section */}
+      <section className="flex flex-col md:flex-row md:items-end justify-between gap-4 px-1">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Commerce Overview</h1>
-          <p className="text-sm text-gray-500 mt-1">Real-time performance metrics across all nodes</p>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">{t('executiveSummary')}</h1>
+          <p className="text-xs font-semibold text-gray-400 mt-1 uppercase tracking-[0.2em]">Real-time Performance Intelligence</p>
         </div>
-        <div className="flex gap-3">
-          {/* Action buttons could go here */}
-        </div>
-      </div>
+      </section>
 
-      {/* Global KPI Row */}
-      <section aria-label="Global KPIs">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+      {/* KPI Cards Grid */}
+      <section className="px-1">
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 md:gap-4">
           <KPICard
-            title="Total Revenue"
-            value={formatIDRShort(globalKPI.totalRevenue)}
-            change="+12% WoW"
+            title={t('totalRevenue')}
+            value={formatIDR(globalKPI.totalRevenue)}
+            change="+12.5%"
             changeType="positive"
             trend="up"
-            icon={DollarSign}
+            icon={TrendingUp}
             accent="blue"
           />
           <KPICard
-            title="Net Profit"
-            value={formatIDRShort(globalKPI.netProfit)}
+            title={t('netProfit')}
+            value={formatIDR(globalKPI.netProfit)}
             change="+8.2%"
             changeType="positive"
             trend="up"
@@ -76,34 +70,34 @@ export function Dashboard() {
             accent="green"
           />
           <KPICard
-            title="Blended Margin"
+            title={t('blendedMargin')}
             value={`${globalKPI.profitMarginPct}%`}
-            change={`+${globalKPI.marginChangePct}pp`}
+            change="+2.3pp"
             changeType="positive"
             trend="up"
             icon={Percent}
             accent="teal"
           />
           <KPICard
-            title="Margin Change"
-            value={`+${globalKPI.marginChangePct}pp`}
-            change="vs prior period"
+            title={t('marginChange')}
+            value={`${globalKPI.marginChangePct}%`}
+            change="WOW"
             changeType="positive"
             trend="up"
             accent="purple"
           />
           <KPICard
-            title="Risk Index"
+            title={t('riskIndex')}
             value={globalKPI.riskAlertsCount}
-            change="Action Needed"
+            change="HIGH RISK"
             changeType="negative"
             trend="down"
             icon={AlertTriangle}
             accent="red"
           />
           <KPICard
-            title="Inventory Node"
-            value={globalKPI.inventoryPressureScore}
+            title={t('inventoryNode')}
+            value={`${globalKPI.inventoryPressureScore}`}
             change="MODERATE"
             changeType="neutral"
             icon={Package}
@@ -112,109 +106,90 @@ export function Dashboard() {
         </div>
       </section>
 
-      {/* Channel Performance Grid */}
-      <section>
-        <div className="flex items-center gap-3 mb-6">
-          <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500">Marketplace Insight</h2>
-          <div className="h-px flex-1 bg-border" />
-        </div>
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-          {filteredChannels.map((ch) => (
-            <ChannelCard key={ch.channel} data={ch} onExpand={() => { }} />
-          ))}
-        </div>
-      </section>
-
-      <div className="grid gap-12 lg:grid-cols-3">
-        {/* SKU Intelligence Table */}
-        <section className="lg:col-span-2 space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500">SKU Intelligence List</h2>
-            <Link
-              to="/sku"
-              className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-500 hover:text-blue-400 hover:translate-x-1 transition-all flex items-center gap-1"
-            >
-              Master Node <ChevronRight className="h-3 w-3" />
-            </Link>
+      {/* Analytics Main Section */}
+      <div className="space-y-8 md:space-y-10 px-1">
+        {/* Marketplace Section */}
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="h-6 w-1 bg-blue-500 rounded-full" />
+              <h2 className="text-base font-bold tracking-tight text-foreground uppercase tracking-widest">{t('channelPerformance')}</h2>
+            </div>
+            <button className="text-[10px] font-bold text-blue-500 hover:text-blue-600 transition-colors uppercase tracking-widest">{t('insights')} →</button>
           </div>
-          <SKUTable data={filteredSkus} maxRows={10} onRowExpand={() => { }} />
+
+          <div className="flex overflow-x-auto pb-4 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-none snap-x snap-mandatory md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4">
+            {filteredChannels.map((channel) => (
+              <div key={channel.channel} className="min-w-[180px] snap-start flex-shrink-0 md:flex-shrink">
+                <ChannelCard data={channel} onExpand={() => { }} />
+              </div>
+            ))}
+          </div>
         </section>
 
-        {/* Dashboard Side Panels */}
-        <section className="space-y-10">
-          {/* Campaign Analyzer */}
-          <div className="glass-card group p-6 shadow-sm">
-            <div className="flex items-center justify-between border-b border-border pb-4 mb-5">
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-purple-500" />
-                <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500">Campaign Node</h2>
-              </div>
-              <Link to="/campaigns" className="text-gray-400 hover:text-foreground transition-all">
-                <ChevronRight className="h-4 w-4" />
-              </Link>
+        {/* SKU Section */}
+        <section className="bg-white/30 dark:bg-white/[0.01] rounded-[2rem] p-4 md:p-6 border border-border">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div>
+              <h2 className="text-base font-bold tracking-tight text-foreground uppercase tracking-widest">{t('skuIntelligence')}</h2>
+              <p className="text-[9px] font-bold text-gray-500 mt-0.5 uppercase tracking-widest">Performance Tracking</p>
             </div>
-            <div className="space-y-5">
-              {campaigns.slice(0, 4).map((c) => (
-                <div key={c.id} className="flex items-center justify-between group/item">
-                  <div className="space-y-1">
-                    <p className="text-sm font-bold text-foreground group-hover/item:text-blue-500 transition-colors tracking-tight">{c.name}</p>
-                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">{c.channel}</p>
+            <div className="flex bg-muted/50 p-0.5 rounded-lg shrink-0">
+              <button className="px-3 py-1 text-[9px] font-bold text-white bg-blue-500 rounded-md shadow-sm uppercase">Profitability</button>
+              <button className="px-3 py-1 text-[9px] font-bold text-gray-400 hover:text-foreground transition-all uppercase">Inventory</button>
+            </div>
+          </div>
+          <SKUTable data={filteredSkus} />
+        </section>
+
+        {/* Bottom Section - Campaigns and Insights */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <section className="lg:col-span-1 space-y-4">
+            <div className="flex items-center justify-between px-1">
+              <h2 className="text-base font-bold tracking-tight text-foreground uppercase tracking-widest">{t('campaign')}</h2>
+              <Link to="/campaigns" className="text-[10px] font-bold text-blue-500 hover:text-blue-600 transition-colors uppercase tracking-widest">View All</Link>
+            </div>
+            <div className="space-y-3">
+              {activeCampaigns.slice(0, 3).map(campaign => (
+                <div key={campaign.id} className="glass-card p-4 flex items-center justify-between border-none dark:border dark:border-border">
+                  <div className="flex items-center gap-3">
+                    <div className="h-9 w-9 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                      <ShoppingCart className="h-4.5 w-4.5 text-blue-500" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-foreground">{campaign.name}</p>
+                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{campaign.channel}</p>
+                    </div>
                   </div>
                   <div className="text-right">
-                    <div className={cn(
-                      "inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold mb-1",
-                      c.roas >= 3 ? "bg-green-500/10 text-green-600 dark:text-green-400" :
-                        c.roas >= 2 ? "bg-amber-500/10 text-amber-600 dark:text-amber-400" : "bg-red-500/10 text-red-600 dark:text-red-400"
-                    )}>
-                      {c.roas}x ROAS
-                    </div>
-                    <p className="text-[10px] font-mono font-bold text-gray-500">{formatIDRShort(c.revenue)}</p>
+                    <p className="text-sm font-bold text-foreground">{campaign.roas}x</p>
+                    <p className="text-[9px] text-emerald-500 font-bold uppercase tracking-wider">ROAS</p>
                   </div>
                 </div>
               ))}
             </div>
-            <button className="mt-8 w-full py-3 rounded-xl border border-border bg-muted/30 text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 hover:bg-muted hover:text-foreground transition-all">
-              Launch Intelligence
-            </button>
-          </div>
+          </section>
 
-          {/* Production Priority */}
-          <div className="glass-card group p-6 shadow-sm">
-            <div className="flex items-center gap-2 border-b border-border pb-4 mb-5">
-              <Factory className="h-4 w-4 text-blue-500" />
-              <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500">Production Node</h2>
+          <section className="lg:col-span-2 glass-card p-6 border-none dark:border dark:border-border bg-gradient-to-br from-blue-600/5 to-indigo-600/5">
+            <div className="flex items-center gap-2 mb-4">
+              <Sparkles className="h-5 w-5 text-blue-500" />
+              <h2 className="text-base font-bold tracking-tight text-foreground uppercase tracking-widest">AI Intelligence Brief</h2>
             </div>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="space-y-4">
-                <p className="text-[9px] font-extrabold text-green-600 uppercase tracking-tighter">RESTOCK</p>
-                <div className="flex flex-col gap-2">
-                  {['Rose Mist', 'Eye Cream'].map(item => (
-                    <div key={item} className="p-2 rounded-lg bg-green-500/5 border border-green-500/10 text-[9px] text-green-700 dark:text-green-400 font-bold">{item}</div>
-                  ))}
-                </div>
-              </div>
-              <div className="space-y-4">
-                <p className="text-[9px] font-extrabold text-amber-600 uppercase tracking-tighter">MONITOR</p>
-                <div className="flex flex-col gap-2">
-                  {['Serum C', 'Sunscreen'].map(item => (
-                    <div key={item} className="p-2 rounded-lg bg-amber-500/5 border border-amber-500/10 text-[9px] text-amber-700 dark:text-amber-400 font-bold">{item}</div>
-                  ))}
-                </div>
-              </div>
-              <div className="space-y-4">
-                <p className="text-[9px] font-extrabold text-red-600 uppercase tracking-tighter">STOP</p>
-                <div className="flex flex-col gap-2">
-                  {['Trial Set', 'Premium'].map(item => (
-                    <div key={item} className="p-2 rounded-lg bg-red-500/5 border border-red-500/10 text-[9px] text-red-700 dark:text-red-400 font-bold">{item}</div>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <p className="mt-8 text-[10px] text-gray-500 italic leading-relaxed border-t border-border pt-4">
-              Priorities calculated via velocity mapping.
+            <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+              Your portfolio margin improved by <span className="text-emerald-500 font-bold">+2.3pp</span> this week. However, <span className="text-red-500 font-bold">3 SKUs</span> in Shopee are currently burning cash.
             </p>
-          </div>
-        </section>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 rounded-2xl bg-white/50 dark:bg-white/[0.02] border border-border">
+                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Top Risk</p>
+                <p className="text-xs font-bold text-foreground truncate">Premium Box Set Margin: -13%</p>
+              </div>
+              <div className="p-4 rounded-2xl bg-white/50 dark:bg-white/[0.02] border border-border">
+                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Top Opportunity</p>
+                <p className="text-xs font-bold text-foreground truncate">Scale Looky Gems Bundle</p>
+              </div>
+            </div>
+          </section>
+        </div>
       </div>
     </div>
   )

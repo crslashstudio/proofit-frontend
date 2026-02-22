@@ -62,12 +62,17 @@ export interface GlobalKPI {
   inventoryPressureScore: number // 0-100
 }
 
-export interface AIInsight {
+export interface AIInsightContent {
   executiveSummary: string
   topRisks: string[]
   topOpportunities: string[]
   actionPriorities: string[]
   strategicObservation: string
+}
+
+export interface AIInsight {
+  en: AIInsightContent
+  id: AIInsightContent
 }
 
 // ——— Workspaces ———
@@ -144,27 +149,55 @@ export const campaigns: Campaign[] = [
   { id: 'c10', name: 'New Launch Serum', channel: 'shopee', spend: 18_000_000, revenue: 72_000_000, roas: 4.0, status: 'active' },
 ]
 
+export interface AIInsight {
+  en: AIInsightContent
+  id: AIInsightContent
+}
+
 // ——— AI insights ———
 export const aiInsight: AIInsight = {
-  executiveSummary: 'Revenue is up 12% WoW with margin improvement of 2.3pp. Shopee and Tokopedia drive 64% of revenue. Three cash-burner SKUs require immediate repricing or pause. TikTok ROAS on "Brand Awareness Q1" is below target.',
-  topRisks: [
-    'Premium Box Set has negative margin (-13%) across channels; consider discontinuing or repricing.',
-    'Cleanser Gentle 100ml margin dropped to 10% on Shopee; high volume but low profitability.',
-    'Trial Set 3pcs and Mask Sheet 5pcs are loss leaders; review promo depth and inventory.',
-  ],
-  topOpportunities: [
-    'Face Mist Rose and Eye Cream 15ml show 30% margin with growing volume; scale inventory.',
-    'Shopify D2C has highest margin (21.2%); allocate more budget to direct channel.',
-    'Lip Tint Set and Sunscreen SPF50 are stars with strong sell-through; consider bundling.',
-  ],
-  actionPriorities: [
-    'Pause or reprice Premium Box Set and Gift Set Luxury within 48 hours.',
-    'Increase safety stock for Face Mist Rose and Hair Serum 50ml (hidden gems).',
-    'Reduce TikTok "Brand Awareness Q1" spend or tighten targeting to improve ROAS.',
-    'Run margin audit on all illusion bestsellers (Cleanser, Toner, BB Cream, Micellar Water).',
-    'Plan Shopee 3.3 campaign with focus on star SKUs and limited cash-burner exposure.',
-  ],
-  strategicObservation: 'Portfolio is shifting toward higher-margin D2C and Tokopedia. TikTok is acquisition-heavy; consider dedicated retention campaigns. Inventory pressure (62) is moderate—watch Mask Sheet and Trial Set overstock.',
+  en: {
+    executiveSummary: 'Revenue is up 12% WoW with margin improvement of 2.3pp. Shopee and Tokopedia drive 64% of revenue. Three cash-burner SKUs require immediate repricing or pause. TikTok ROAS on "Brand Awareness Q1" is below target.',
+    topRisks: [
+      'Premium Box Set has negative margin (-13%) across channels; consider discontinuing or repricing.',
+      'Cleanser Gentle 100ml margin dropped to 10% on Shopee; high volume but low profitability.',
+      'Trial Set 3pcs and Mask Sheet 5pcs are loss leaders; review promo depth and inventory.',
+    ],
+    topOpportunities: [
+      'Face Mist Rose and Eye Cream 15ml show 30% margin with growing volume; scale inventory.',
+      'Shopify D2C has highest margin (21.2%); allocate more budget to direct channel.',
+      'Lip Tint Set and Sunscreen SPF50 are stars with strong sell-through; consider bundling.',
+    ],
+    actionPriorities: [
+      'Pause or reprice Premium Box Set and Gift Set Luxury within 48 hours.',
+      'Increase safety stock for Face Mist Rose and Hair Serum 50ml (hidden gems).',
+      'Reduce TikTok "Brand Awareness Q1" spend or tighten targeting to improve ROAS.',
+      'Run margin audit on all illusion bestsellers (Cleanser, Toner, BB Cream, Micellar Water).',
+      'Plan Shopee 3.3 campaign with focus on star SKUs and limited cash-burner exposure.',
+    ],
+    strategicObservation: 'Portfolio is shifting toward higher-margin D2C and Tokopedia. TikTok is acquisition-heavy; consider dedicated retention campaigns. Inventory pressure (62) is moderate—watch Mask Sheet and Trial Set overstock.',
+  },
+  id: {
+    executiveSummary: 'Pendapatan naik 12% WoW dengan peningkatan margin sebesar 2.3pp. Shopee dan Tokopedia menyumbang 64% dari total pendapatan. Tiga SKU kategori "Cash Burner" memerlukan penyesuaian harga segera atau dihentikan sementara. ROAS TikTok pada kampanye "Brand Awareness Q1" masih di bawah target.',
+    topRisks: [
+      'Premium Box Set memiliki margin negatif (-13%) di semua kanal; pertimbangkan untuk menghentikan atau menyesuaikan harga.',
+      'Margin Cleanser Gentle 100ml turun menjadi 10% di Shopee; volume tinggi namun profitabilitas rendah.',
+      'Trial Set 3pcs dan Mask Sheet 5pcs adalah produk yang merugi; tinjau kedalaman promo dan stok inventaris.',
+    ],
+    topOpportunities: [
+      'Face Mist Rose dan Eye Cream 15ml menunjukkan margin 30% dengan volume yang terus meningkat; tingkatkan stok.',
+      'Shopify D2C memiliki margin tertinggi (21,2%); alokasikan lebih banyak anggaran ke kanal langsung.',
+      'Lip Tint Set dan Sunscreen SPF50 adalah produk unggulan dengan tingkat penjualan tinggi; pertimbangkan skema bundling.',
+    ],
+    actionPriorities: [
+      'Hentikan sementara atau sesuaikan harga Premium Box Set dan Gift Set Luxury dalam waktu 48 jam.',
+      'Tingkatkan stok pengaman untuk Face Mist Rose dan Hair Serum 50ml (Hidden Gem).',
+      'Kurangi pengeluaran TikTok "Brand Awareness Q1" atau pertegas target audiens untuk meningkatkan ROAS.',
+      'Lakukan audit margin pada semua produk best-seller semu (Cleanser, Toner, BB Cream, Micellar Water).',
+      'Rencanakan kampanye Shopee 3.3 dengan fokus pada SKU bintang dan batasi eksposur produk rugi.',
+    ],
+    strategicObservation: 'Portofolio bergeser ke arah D2C dan Tokopedia dengan margin lebih tinggi. TikTok sangat bergantung pada akuisisi; pertimbangkan kampanye retensi khusus. Tekanan inventaris (62) berada di level moderat—pantau stok berlebih pada Mask Sheet dan Trial Set.',
+  },
 }
 
 // ——— Helpers ———
@@ -177,9 +210,21 @@ export function formatIDR(value: number): string {
   }).format(value).replace(/\s/g, ' ')
 }
 
+/**
+ * Formats a number as IDR (Indonesian Rupiah) with smart abbreviations.
+ * >= 1.000.000.000 -> "Rp X.Xmiliar" 
+ * >= 1.000.000 -> "Rp XXX jt"
+ * < 1.000.000 -> "Rp X.XXX"
+ */
 export function formatIDRShort(value: number): string {
-  if (value >= 1_000_000_000) return `Rp ${(value / 1_000_000_000).toFixed(1)}M`
-  if (value >= 1_000_000) return `Rp ${(value / 1_000_000).toFixed(1)}jt`
-  if (value >= 1_000) return `Rp ${(value / 1_000).toFixed(1)}rb`
-  return `Rp ${value}`
+  const absValue = Math.abs(value);
+  const sign = value < 0 ? '-' : '';
+
+  if (absValue >= 1_000_000_000) {
+    return `${sign}Rp ${(absValue / 1_000_000_000).toFixed(1)}miliar`;
+  } else if (absValue >= 1_000_000) {
+    return `${sign}Rp ${Math.floor(absValue / 1_000_000)} jt`;
+  } else {
+    return `${sign}Rp ${absValue.toLocaleString('id-ID')}`;
+  }
 }

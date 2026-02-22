@@ -2,6 +2,7 @@ import { ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { formatIDRShort } from '@/data/mockData'
 import type { ChannelPerformance } from '@/data/mockData'
+import { useAppStore } from '@/store/useAppStore'
 
 const CHANNEL_COLORS: Record<string, string> = {
   tiktok: '#FE2C55',
@@ -32,16 +33,18 @@ interface ChannelCardProps {
 }
 
 export function ChannelCard({ data, onExpand, className }: ChannelCardProps) {
+  const { t } = useAppStore()
   const accent = CHANNEL_COLORS[data.channel] ?? '#3B82F6'
   const label = CHANNEL_LABELS[data.channel] ?? data.channel.toUpperCase()
 
   return (
     <div
       className={cn(
-        'glass-card group transition-all duration-300 hover:scale-[1.01] dark:hover:border-white/12 shadow-sm',
+        "group relative flex flex-col rounded-3xl p-4 md:p-5 transition-all duration-500 min-w-[180px]",
+        "bg-white dark:bg-card shadow-[0_2px_8px_rgba(0,0,0,0.06)] dark:shadow-none dark:border border-border",
+        "hover:translate-y-[-4px] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)]",
         className
-      )}
-    >
+      )}>
       {/* Channel brand line */}
       <div
         className="h-[2px] w-full"
@@ -51,7 +54,7 @@ export function ChannelCard({ data, onExpand, className }: ChannelCardProps) {
 
       <div className="p-5">
         <div className="flex items-center justify-between mb-5">
-          <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 opacity-80 group-hover:opacity-100 transition-opacity">
+          <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500 opacity-80 group-hover:opacity-100 transition-opacity">
             {label}
           </h3>
           <div className={cn(
@@ -64,20 +67,20 @@ export function ChannelCard({ data, onExpand, className }: ChannelCardProps) {
 
         <div className="grid grid-cols-2 gap-y-5 gap-x-3">
           <div className="space-y-1">
-            <p className="text-[9px] uppercase tracking-[0.1em] text-gray-400 font-bold">Revenue</p>
-            <p className="text-sm font-bold tabular-nums text-foreground">{formatIDRShort(data.revenue)}</p>
+            <p className="text-[9px] uppercase tracking-[0.1em] text-gray-400 font-bold">{t('revenue')}</p>
+            <p className="text-sm font-bold tabular-nums text-gray-700 dark:text-foreground">{formatIDRShort(data.revenue)}</p>
           </div>
           <div className="space-y-1">
-            <p className="text-[9px] uppercase tracking-[0.1em] text-gray-400 font-bold">Profit</p>
+            <p className="text-[9px] uppercase tracking-[0.1em] text-gray-400 font-bold">{t('profit')}</p>
             <p className="text-sm font-bold tabular-nums text-green-600 dark:text-[#10B981]">{formatIDRShort(data.netProfit)}</p>
           </div>
           <div className="space-y-1">
-            <p className="text-[9px] uppercase tracking-[0.1em] text-gray-400 font-bold">Margin</p>
-            <p className="text-sm font-bold tabular-nums text-foreground">{data.marginPct}%</p>
+            <p className="text-[9px] uppercase tracking-[0.1em] text-gray-400 font-bold">{t('margin')}</p>
+            <p className="text-sm font-bold tabular-nums text-gray-700 dark:text-foreground">{data.marginPct}%</p>
           </div>
           <div className="space-y-1">
-            <p className="text-[9px] uppercase tracking-[0.1em] text-gray-400 font-bold">Contribution</p>
-            <p className="text-sm font-bold tabular-nums text-foreground">{data.contributionPct}%</p>
+            <p className="text-[9px] uppercase tracking-[0.1em] text-gray-400 font-bold">{t('contribution')}</p>
+            <p className="text-sm font-bold tabular-nums text-gray-700 dark:text-foreground">{data.contributionPct}%</p>
           </div>
         </div>
 
@@ -87,7 +90,7 @@ export function ChannelCard({ data, onExpand, className }: ChannelCardProps) {
             onClick={onExpand}
             className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 border border-border hover:bg-muted hover:text-foreground transition-all"
           >
-            Insights <ChevronRight className="h-3 w-3" />
+            {t('insights')} <ChevronRight className="h-3 w-3" />
           </button>
         )}
       </div>

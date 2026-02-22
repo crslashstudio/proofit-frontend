@@ -12,22 +12,22 @@ import {
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/useAppStore'
 
-const NAV_ITEMS = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/sku', label: 'SKU Intelligence', icon: Package },
-  { to: '/campaigns', label: 'Campaigns', icon: Megaphone },
-  { to: '/production', label: 'Production', icon: Factory },
-  { to: '/reports', label: 'Reports', icon: FileBarChart },
-  { to: '/settings', label: 'Settings', icon: Settings },
-]
-
 export function Sidebar({ toggleSidebar: _ignore }: { toggleSidebar: () => void }) {
-  const { sidebarCollapsed, toggleSidebar } = useAppStore()
+  const { sidebarCollapsed, toggleSidebar, t } = useAppStore()
+
+  const NAV_ITEMS = [
+    { to: '/', label: t('dashboard'), icon: LayoutDashboard },
+    { to: '/sku', label: t('skuIntelligence'), icon: Package },
+    { to: '/campaigns', label: t('campaign'), icon: Megaphone },
+    { to: '/production', label: t('production'), icon: Factory },
+    { to: '/reports', label: 'Reports', icon: FileBarChart },
+    { to: '/settings', label: t('settings'), icon: Settings },
+  ]
 
   return (
     <aside
       className={cn(
-        'flex shrink-0 flex-col border-r border-border bg-sidebar transition-all duration-300 ease-in-out',
+        'flex shrink-0 flex-col border-r border-gray-100 dark:border-border bg-white dark:bg-sidebar transition-all duration-300 ease-in-out',
         sidebarCollapsed ? 'w-14' : 'w-[220px]'
       )}
     >
@@ -42,7 +42,7 @@ export function Sidebar({ toggleSidebar: _ignore }: { toggleSidebar: () => void 
                 'relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold tracking-wide transition-all duration-300 group',
                 isActive
                   ? 'bg-blue-500/10 text-blue-500 dark:text-blue-400 border border-blue-500/20 shadow-sm dark:shadow-[0_0_20px_rgba(59,130,246,0.1)]'
-                  : 'text-gray-500 hover:bg-muted dark:hover:bg-white/5 hover:text-foreground'
+                  : 'text-gray-400 hover:bg-muted dark:hover:bg-white/5 hover:text-foreground'
               )
             }
           >
@@ -58,11 +58,11 @@ export function Sidebar({ toggleSidebar: _ignore }: { toggleSidebar: () => void 
           </NavLink>
         ))}
       </nav>
-      <div className="border-t border-border p-3">
+      <div className="hidden md:block border-t border-gray-100 dark:border-border p-3">
         <button
           type="button"
           onClick={toggleSidebar}
-          className="flex w-full items-center justify-center gap-3 rounded-xl px-3 py-2.5 text-xs font-medium text-gray-500 hover:bg-muted dark:hover:bg-white/5 hover:text-foreground transition-all"
+          className="flex w-full items-center justify-center gap-3 rounded-xl px-3 py-2.5 text-xs font-medium text-gray-400 hover:bg-muted dark:hover:bg-white/5 hover:text-foreground transition-all"
           aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {sidebarCollapsed ? (
@@ -70,7 +70,7 @@ export function Sidebar({ toggleSidebar: _ignore }: { toggleSidebar: () => void 
           ) : (
             <>
               <PanelLeftClose className="h-[18px] w-[18px]" />
-              <span className="truncate font-semibold uppercase tracking-widest text-[10px]">Collapse</span>
+              <span className="truncate font-semibold uppercase tracking-widest text-[10px]">{t('collapse')}</span>
             </>
           )}
         </button>

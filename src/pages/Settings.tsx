@@ -72,37 +72,62 @@ export function Settings() {
     const { t, user } = useAppStore()
     const [activeTab, setActiveTab] = useState<Tab>('integrations')
     const [channels, setChannels] = useState<Channel[]>(INITIAL_CHANNELS)
+    const [tiktokStatus, setTiktokStatus] = useState<{
+        connected: boolean
+        shopName: string
+        shopId: string
+    } | null>(null)
+    const [loading, setLoading] = useState(true)
     const [syncing, setSyncing] = useState(false)
     const [disconnecting, setDisconnecting] = useState(false)
     const [workspaceName, setWorkspaceName] = useState('My Workspace')
 
     useEffect(() => {
+        let mounted = true
+
         const fetchIntegrations = async () => {
             try {
+                setLoading(true)
+                console.log('[Settings] Fetching integrations...')
                 const response = await api.get('/integrations')
-                const integrations = response.data.data || []
+                console.log('[Settings] Response:', response.data)
 
-                setChannels(prev => prev.map(channel => {
-                    if (channel.id === 'tiktok') {
-                        const tiktok = integrations.find(
-                            (i: any) => i.channel === 'tiktok' && i.isActive === true
-                        )
-                        if (tiktok) {
-                            return {
-                                ...channel,
-                                status: 'connected' as const,
-                                shopName: tiktok.shopName,
-                                shopId: tiktok.shopId
-                            }
-                        }
-                    }
-                    return channel
-                }))
-            } catch (error) {
-                console.error('Failed to fetch integrations:', error)
+                if (!mounted) return
+
+                const integrations = response.data?.data || []
+                console.log('[Settings] Integrations:', integrations)
+
+                const tiktok = integrations.find(
+                    (i: any) => i.channel === 'tiktok' && i.isActive === true
+                )
+                console.log('[Settings] TikTok integration:', tiktok)
+
+                if (tiktok && mounted) {
+                    setTiktokStatus({
+                        connected: true,
+                        shopName: tiktok.shopName || 'TikTok Shop',
+                        shopId: tiktok.shopId || ''
+                    })
+                    // Update channels state
+                    setChannels(prev => prev.map(ch =>
+                        ch.id === 'tiktok'
+                            ? { ...ch, status: 'connected' as const, shopName: tiktok.shopName }
+                            : ch
+                    ))
+                    console.log('[Settings] TikTok connected:', tiktok.shopName)
+                }
+            } catch (error: any) {
+                console.error('[Settings] Error:', error.message)
+                if (error.response?.status === 401) {
+                    window.location.href = '/login'
+                }
+            } finally {
+                if (mounted) setLoading(false)
             }
         }
+
         fetchIntegrations()
+        return () => { mounted = false }
     }, [])
 
     const handleConnect = async (channelId: string) => {
@@ -150,131 +175,128 @@ export function Settings() {
         }
     }
 
-    const renderIntegrations = () => (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-            <div className="flex flex-col gap-1">
-                <h2 className="text-xl font-bold text-[var(--text-primary)]">{t('channelIntegrations')}</h2>
-                <p className="text-sm text-[var(--text-muted)] font-medium">{t('connectMarketplace')}</p>
-            </div>
+    const renderIntegrations = () => {
+        if (loading) {
+            return (
+                <div className="flex items-center justify-center py-20">
+                    <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+                    <span className="ml-2 text-sm text-[var(--text-muted)]">Loading integrations...</span>
+                </div>
+            )
+        }
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {channels.map(channel => (
-                    <div
-                        key={channel.id}
-                        className={cn(
-                            "rounded-2xl border p-5 transition-all duration-200",
-                            "bg-[var(--bg-secondary)] border-[var(--border)]",
-                            "hover:border-[var(--border-hover)]",
-                            channel.status === 'connected' && "border-green-500/30"
-                        )}
-                    >
-                        {/* Header */}
-                        <div className="flex items-start justify-between mb-3">
-                            <div className="flex items-center gap-3">
-                                <div
-                                    className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
-                                    style={{ backgroundColor: channel.color }}
-                                >
-                                    {channel.letter}
-                                </div>
-                                <div>
-                                    <h3 className="font-semibold text-sm text-[var(--text-primary)]">
-                                        {channel.name}
-                                    </h3>
-                                    {channel.status === 'connected' && (
-                                        <span className="inline-flex items-center gap-1 text-[10px] font-medium bg-green-100 dark:bg-green-500/15 text-green-600 dark:text-green-400 px-2 py-0.5 rounded-full mt-0.5">
-                                            <span className="w-1.5 h-1.5 bg-green-500 rounded-full inline-block"></span>
-                                            {t('connected')}
-                                        </span>
-                                    )}
-                                    {channel.status === 'not_connected' && (
-                                        <span className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider mt-0.5 block font-bold">
-                                            {t('notConnected')}
-                                        </span>
-                                    )}
-                                    {channel.status === 'coming_soon' && (
-                                        <span className="inline-flex items-center text-[10px] font-medium bg-amber-100 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded-full mt-0.5">
-                                            {t('comingSoon')}
-                                        </span>
-                                    )}
+        return (
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                <div className="flex flex-col gap-1">
+                    <h2 className="text-xl font-bold text-[var(--text-primary)]">{t('channelIntegrations')}</h2>
+                    <p className="text-sm text-[var(--text-muted)] font-medium">{t('connectMarketplace')}</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {channels.map(channel => (
+                        <div
+                            key={channel.id}
+                            className={cn(
+                                "rounded-2xl border p-5 transition-all duration-200",
+                                "bg-[var(--bg-secondary)] border-[var(--border)]",
+                                "hover:border-[var(--border-hover)]",
+                                channel.status === 'connected' && "border-green-500/30"
+                            )}
+                        >
+                            {/* Header */}
+                            <div className="flex items-start justify-between mb-3">
+                                <div className="flex items-center gap-3">
+                                    <div
+                                        className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+                                        style={{ backgroundColor: channel.color }}
+                                    >
+                                        {channel.letter}
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold text-sm text-[var(--text-primary)]">
+                                            {channel.name}
+                                        </h3>
+                                        {channel.id === 'tiktok' ? (
+                                            tiktokStatus?.connected ? (
+                                                <span className="inline-flex items-center gap-1 text-[10px] font-medium bg-green-100 dark:bg-green-500/15 text-green-600 dark:text-green-400 px-2 py-0.5 rounded-full mt-0.5">
+                                                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse inline-block"></span>
+                                                    {t('connected')} • {tiktokStatus.shopName}
+                                                </span>
+                                            ) : (
+                                                <span className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider mt-0.5 block font-bold">
+                                                    {t('notConnected')}
+                                                </span>
+                                            )
+                                        ) : (
+                                            channel.status === 'coming_soon' && (
+                                                <span className="inline-flex items-center text-[10px] font-medium bg-amber-100 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded-full mt-0.5">
+                                                    {t('comingSoon')}
+                                                </span>
+                                            )
+                                        )}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        {/* Shop name if connected */}
-                        {channel.status === 'connected' && channel.shopName && (
-                            <p className="text-xs font-medium text-[var(--text-secondary)] mb-2">
-                                🏪 {channel.shopName}
+                            {/* Shop name if connected */}
+                            {channel.status === 'connected' && channel.shopName && channel.id !== 'tiktok' && (
+                                <p className="text-xs font-medium text-[var(--text-secondary)] mb-2">
+                                    🏪 {channel.shopName}
+                                </p>
+                            )}
+
+                            {/* Description */}
+                            <p className="text-xs text-[var(--text-muted)] mb-4 leading-relaxed">
+                                {channel.description}
                             </p>
-                        )}
 
-                        {/* Description */}
-                        <p className="text-xs text-[var(--text-muted)] mb-4 leading-relaxed">
-                            {channel.description}
-                        </p>
-
-                        {/* Action Buttons */}
-                        {channel.status === 'connected' && (
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={handleSync}
-                                    disabled={syncing}
-                                    className={cn(
-                                        "flex-1 py-2 px-3 rounded-xl text-xs font-semibold transition-all duration-150",
-                                        "bg-blue-500 hover:bg-blue-600 text-white",
-                                        "disabled:opacity-50 disabled:cursor-not-allowed",
-                                        "flex items-center justify-center gap-1.5"
-                                    )}
-                                >
-                                    {syncing ? (
-                                        <><Loader2 className="w-3 h-3 animate-spin" /> Syncing...</>
-                                    ) : (
-                                        '↻ Sync Sekarang'
-                                    )}
+                            {/* Action Buttons */}
+                            {channel.id === 'tiktok' ? (
+                                tiktokStatus?.connected ? (
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={handleSync}
+                                            disabled={syncing}
+                                            className="flex-1 py-2 px-3 rounded-xl text-xs font-semibold bg-blue-500 hover:bg-blue-600 text-white disabled:opacity-50 flex items-center justify-center gap-1.5 transition-all"
+                                        >
+                                            {syncing ? <><Loader2 className="w-3 h-3 animate-spin" /> Syncing...</> : '↻ Sync Sekarang'}
+                                        </button>
+                                        <button
+                                            onClick={() => handleDisconnect('tiktok')}
+                                            disabled={disconnecting}
+                                            className="px-3 py-2 rounded-xl text-xs font-semibold border border-red-300 dark:border-red-500/30 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 disabled:opacity-50 transition-all"
+                                        >
+                                            {disconnecting ? '...' : 'Putus'}
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={() => handleConnect('tiktok')}
+                                        className="w-full py-2 px-3 rounded-xl text-xs font-semibold border border-[var(--border)] hover:border-blue-500 text-[var(--text-primary)] hover:text-blue-500 flex items-center justify-center gap-1.5 transition-all"
+                                    >
+                                        <ExternalLink className="w-3 h-3" />
+                                        {t('connectChannel')}
+                                    </button>
+                                )
+                            ) : channel.status === 'coming_soon' ? (
+                                <button disabled className="w-full py-2 px-3 rounded-xl text-xs font-semibold text-[var(--text-muted)] cursor-not-allowed">
+                                    {t('comingSoon')}
                                 </button>
+                            ) : (
                                 <button
-                                    onClick={() => handleDisconnect(channel.id)}
-                                    disabled={disconnecting}
-                                    className={cn(
-                                        "px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-150",
-                                        "border border-red-300 dark:border-red-500/30",
-                                        "text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10",
-                                        "disabled:opacity-50 disabled:cursor-not-allowed"
-                                    )}
+                                    onClick={() => handleConnect(channel.id)}
+                                    className="w-full py-2 px-3 rounded-xl text-xs font-semibold border border-[var(--border)] hover:border-blue-500 text-[var(--text-primary)] hover:text-blue-500 flex items-center justify-center gap-1.5 transition-all"
                                 >
-                                    {disconnecting ? '...' : 'Putus'}
+                                    <ExternalLink className="w-3 h-3" />
+                                    {t('connectChannel')}
                                 </button>
-                            </div>
-                        )}
-
-                        {channel.status === 'not_connected' && (
-                            <button
-                                onClick={() => handleConnect(channel.id)}
-                                className={cn(
-                                    "w-full py-2 px-3 rounded-xl text-xs font-semibold transition-all duration-150",
-                                    "border border-[var(--border)] hover:border-[var(--border-hover)]",
-                                    "text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)]",
-                                    "flex items-center justify-center gap-1.5"
-                                )}
-                            >
-                                <ExternalLink className="w-3 h-3" />
-                                {t('connectChannel')}
-                            </button>
-                        )}
-
-                        {channel.status === 'coming_soon' && (
-                            <button
-                                disabled
-                                className="w-full py-2 px-3 rounded-xl text-xs font-semibold text-[var(--text-muted)] cursor-not-allowed"
-                            >
-                                {t('comingSoon')}
-                            </button>
-                        )}
-                    </div>
-                ))}
+                            )}
+                        </div>
+                    ))}
+                </div>
             </div>
-        </div>
-    )
+        )
+    }
 
     const renderWorkspace = () => (
         <div className="max-w-2xl space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">

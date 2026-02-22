@@ -4,14 +4,10 @@ import {
     Globe,
     Building2,
     User,
-    CheckCircle2,
-    AlertCircle,
     ExternalLink,
     Loader2,
     ShieldCheck,
-    Lock,
-    Check,
-    Clock
+    Lock
 } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
 import { cn } from '@/lib/utils'
@@ -83,7 +79,6 @@ export function Settings() {
     const [tiktokConnected, setTiktokConnected] = useState(false)
     const [tiktokShopName, setTiktokShopName] = useState('')
     const [syncing, setSyncing] = useState(false)
-    const [syncSuccess, setSyncSuccess] = useState(false)
     const [disconnecting, setDisconnecting] = useState(false)
     const [workspaceName, setWorkspaceName] = useState('My Workspace')
 
@@ -92,7 +87,9 @@ export function Settings() {
             try {
                 const response = await api.get('/integrations')
                 const integrations = response.data.data || []
-                const tiktok = integrations.find((i: any) => i.channel === 'tiktok' && i.isActive === true)
+                const tiktok = integrations.find((i: any) =>
+                    i.channel === 'tiktok' && i.isActive === true
+                )
                 if (tiktok) {
                     setTiktokConnected(true)
                     setTiktokShopName(tiktok.shopName)
@@ -110,13 +107,10 @@ export function Settings() {
             const response = await api.post('/integrations/tiktok/sync')
             if (response.data.success) {
                 const { orders, products } = response.data.data
-                alert(`Berhasil sync ${orders} orders and ${products} produk`)
-                setSyncSuccess(true)
-                setTimeout(() => setSyncSuccess(false), 3000)
+                alert(`✅ Berhasil sync ${orders} orders dan ${products} produk`)
             }
         } catch (error: any) {
-            console.error('Sync error:', error)
-            alert('Sync gagal: ' + (error.response?.data?.error || error.message))
+            alert('❌ Sync gagal: ' + (error.response?.data?.error || error.message))
         } finally {
             setSyncing(false)
         }
@@ -177,90 +171,62 @@ export function Settings() {
                             key={ch.id}
                             className="glass-card p-5 border border-[var(--border)] bg-[var(--bg-secondary)] overflow-hidden relative group transition-all hover:shadow-lg hover:border-[var(--border-hover)]"
                         >
-                            <div className="flex items-start justify-between mb-3">
-                                <div className="flex items-center gap-3">
-                                    <div
-                                        className="h-10 w-10 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-sm"
-                                        style={{ backgroundColor: ch.color }}
-                                    >
-                                        {ch.letter}
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-[var(--text-primary)]">{ch.name}</h3>
-                                        <div className="mt-0.5">
-                                            {isConnected ? (
-                                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold uppercase tracking-wider border border-emerald-500/20">
-                                                    <CheckCircle2 className="h-3 w-3" />
-                                                    {ch.id === 'tiktok' ? 'TERHUBUNG' : t('connected')}
-                                                </span>
-                                            ) : ch.status === 'coming_soon' ? (
-                                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 text-[10px] font-bold uppercase tracking-wider">
-                                                    <AlertCircle className="h-3 w-3" />
-                                                    {t('comingSoon')}
-                                                </span>
-                                            ) : (
-                                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[var(--bg-tertiary)] text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-wider border border-[var(--border)]">
-                                                    {ch.id === 'tiktok' ? 'BELUM TERHUBUNG' : t('notConnected')}
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
+                            <div className="flex items-center gap-3 mb-3">
+                                <div
+                                    className="h-10 w-10 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-sm"
+                                    style={{ backgroundColor: ch.color }}
+                                >
+                                    {ch.letter}
+                                </div>
+                                <div>
+                                    <h3 className="font-semibold text-[var(--text-primary)]">{ch.name}</h3>
+                                    {isConnected ? (
+                                        <span className="text-xs bg-green-100 dark:bg-green-500/15 text-green-600 dark:text-green-400 px-2 py-0.5 rounded-full inline-flex items-center gap-1 font-medium">
+                                            ✓ {ch.id === 'tiktok' ? 'Terhubung' : t('connected')}
+                                        </span>
+                                    ) : ch.status === 'coming_soon' ? (
+                                        <span className="text-xs bg-amber-100 dark:bg-amber-500/15 text-amber-600 px-2 py-0.5 rounded-full">
+                                            {t('comingSoon')}
+                                        </span>
+                                    ) : (
+                                        <span className="text-xs bg-[var(--bg-tertiary)] text-[var(--text-muted)] px-2 py-0.5 rounded-full border border-[var(--border)]">
+                                            {ch.id === 'tiktok' ? 'Belum Terhubung' : t('notConnected')}
+                                        </span>
+                                    )}
                                 </div>
                             </div>
 
                             {isConnected && ch.id === 'tiktok' && (
-                                <p className="text-sm font-medium text-[var(--text-secondary)] mb-1 flex items-center gap-1.5">
-                                    <Building2 className="h-3.5 w-3.5 text-blue-500" />
-                                    {tiktokShopName || 'Official Store'}
+                                <p className="text-sm text-[var(--text-secondary)] mb-1">
+                                    🏪 {tiktokShopName || 'Official Store'}
                                 </p>
                             )}
 
-                            <p className="text-xs text-[var(--text-muted)] mb-5 leading-relaxed">
+                            <p className="text-xs text-[var(--text-muted)] mb-4 leading-relaxed">
                                 {ch.description}
                             </p>
 
-                            <div className="flex items-center gap-2">
+                            <div className="flex gap-2">
                                 {isConnected ? (
                                     <>
-                                        {ch.id === 'tiktok' && (
+                                        {ch.id === 'tiktok' ? (
                                             <>
                                                 <button
                                                     onClick={handleSync}
                                                     disabled={syncing}
-                                                    className={cn(
-                                                        "flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all uppercase tracking-wider",
-                                                        syncSuccess
-                                                            ? "bg-emerald-500 text-white"
-                                                            : "bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 active:scale-95"
-                                                    )}
+                                                    className="flex-1 bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white rounded-xl py-2 text-sm font-medium transition-all"
                                                 >
-                                                    {syncing ? (
-                                                        <>
-                                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                                            Syncing...
-                                                        </>
-                                                    ) : syncSuccess ? (
-                                                        <>
-                                                            <Check className="h-4 w-4" />
-                                                            Synced
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <Clock className="h-3.5 w-3.5" />
-                                                            Sync Sekarang
-                                                        </>
-                                                    )}
+                                                    {syncing ? '⟳ Syncing...' : '↻ Sync Sekarang'}
                                                 </button>
                                                 <button
                                                     onClick={handleDisconnect}
                                                     disabled={disconnecting}
-                                                    className="px-4 py-2 border border-red-500/30 rounded-xl text-xs font-bold text-red-500 hover:bg-red-500/10 transition-all uppercase tracking-wider"
+                                                    className="px-3 border border-red-300 dark:border-red-500/30 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl text-sm transition-all"
                                                 >
                                                     {disconnecting ? '...' : 'Putus'}
                                                 </button>
                                             </>
-                                        )}
-                                        {ch.id !== 'tiktok' && (
+                                        ) : (
                                             <button
                                                 className="w-full px-4 py-2 border border-red-500/50 rounded-xl text-xs font-bold text-red-500 hover:bg-red-500/10 transition-all uppercase tracking-wider"
                                             >

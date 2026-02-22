@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Zap, Bell, ChevronDown, Calendar, Moon, Sun, LayoutGrid, Menu, Settings, LogOut } from 'lucide-react'
+import { Zap, Bell, ChevronDown, Calendar, Moon, Sun, LayoutGrid, Menu } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/useAppStore'
 import { workspaces } from '@/data/mockData'
@@ -37,12 +37,12 @@ export function TopNav() {
   const [workspaceOpen, setWorkspaceOpen] = useState(false)
   const [dateOpen, setDateOpen] = useState(false)
   const [alertsOpen, setAlertsOpen] = useState(false)
-  const [profileOpen, setProfileOpen] = useState(false)
+  const [showDropdown, setShowDropdown] = useState(false)
 
   const workspaceRef = useRef<HTMLDivElement>(null)
   const dateRef = useRef<HTMLDivElement>(null)
   const alertsRef = useRef<HTMLDivElement>(null)
-  const profileRef = useRef<HTMLDivElement>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   const unreadCount = alerts.filter((a) => !a.read).length
   const currentWorkspace =
@@ -54,12 +54,12 @@ export function TopNav() {
         workspaceRef.current?.contains(e.target as Node) === false &&
         dateRef.current?.contains(e.target as Node) === false &&
         alertsRef.current?.contains(e.target as Node) === false &&
-        profileRef.current?.contains(e.target as Node) === false
+        dropdownRef.current?.contains(e.target as Node) === false
       ) {
         setWorkspaceOpen(false)
         setDateOpen(false)
         setAlertsOpen(false)
-        setProfileOpen(false)
+        setShowDropdown(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
@@ -71,6 +71,9 @@ export function TopNav() {
     logout() // Use the store's logout
     window.location.href = '/login'
   }
+
+  const userInitials = user?.email?.substring(0, 2).toUpperCase() || '??'
+  const userEmail = user?.email || ''
 
   const fromStr = dateRange.from.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { month: 'short', day: 'numeric' })
   const toStr = dateRange.to.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -272,45 +275,32 @@ export function TopNav() {
               </div>
             )}
           </div>
-          <div className="relative" ref={profileRef}>
+          <div className="relative" ref={dropdownRef}>
             <button
-              onClick={() => setProfileOpen(!profileOpen)}
-              className="h-8 w-8 flex items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white shadow-sm ring-1 ring-white/10 shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
+              onClick={() => setShowDropdown(!showDropdown)}
+              className="w-8 h-8 rounded-full bg-blue-500 text-white text-xs font-bold flex items-center justify-center cursor-pointer hover:bg-blue-600 transition-colors"
             >
-              {user?.email?.substring(0, 2).toUpperCase() || '??'}
+              {userInitials}
             </button>
 
-            {profileOpen && (
-              <div className="absolute right-0 top-full mt-2 w-56 rounded-xl border border-border bg-card shadow-2xl overflow-hidden py-1 animate-in fade-in zoom-in-95 duration-200">
-                <div className="px-4 py-3 border-b border-border bg-muted/30">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Signed in as</p>
-                  <p className="text-xs font-semibold text-foreground truncate">{user?.email}</p>
+            {showDropdown && (
+              <div className="absolute right-0 top-10 w-56 bg-white dark:bg-[#12121A] border border-gray-200 dark:border-white/10 rounded-xl shadow-xl z-50 overflow-hidden">
+                <div className="px-4 py-3 border-b border-gray-100 dark:border-white/5">
+                  <p className="text-xs text-gray-500">Logged in as</p>
+                  <p className="text-sm font-medium truncate text-foreground">{userEmail}</p>
                 </div>
-
-                <div className="p-1">
-                  <button
-                    onClick={() => {
-                      navigate('/settings')
-                      setProfileOpen(false)
-                    }}
-                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-foreground hover:bg-muted transition-colors font-medium"
-                  >
-                    <Settings className="h-3.5 w-3.5 text-gray-400" />
-                    Pengaturan / Settings
-                  </button>
-                </div>
-
-                <div className="h-px bg-border my-1" />
-
-                <div className="p-1">
-                  <button
-                    onClick={handleLogout}
-                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-red-500 hover:bg-red-500/10 transition-colors font-bold"
-                  >
-                    <LogOut className="h-3.5 w-3.5" />
-                    Keluar / Logout
-                  </button>
-                </div>
+                <button
+                  onClick={() => { setShowDropdown(false); navigate('/settings') }}
+                  className="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 dark:hover:bg-white/5 transition-colors text-foreground flex items-center gap-2"
+                >
+                  <span>⚙️</span> Pengaturan
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors flex items-center gap-2"
+                >
+                  <span>→</span> Keluar
+                </button>
               </div>
             )}
           </div>
